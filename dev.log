@@ -1,0 +1,10 @@
+
+> c-users-ariannapompucci-desktop-conpas-landing@0.0.1 dev
+> astro dev
+
+▶ Astro collects anonymous usage data.
+  This information helps us improve Astro.
+  Run "astro telemetry disable" to opt-out.
+  https://astro.build/telemetry
+
+{"message":"Dev server running at http://localhost:4321 (pid 20492)\n  Stop:   astro dev stop\n  Status: astro dev status\n  Logs:   astro dev logs","label":"SKIP_FORMAT","level":"info"}
