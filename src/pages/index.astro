@@ -1484,7 +1484,11 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
   if(!btn || !panel) return;
 
   var answered = false;
-  var demoAnswer = "¡Buena pregunta! Somos Partner Premium de Zoho en España con más de 15 años de experiencia: ayudamos con consultoría, implementación, migración, integraciones y soporte de todo el ecosistema Zoho. Si quieres, déjanos tu email en el formulario de contacto y un especialista te escribe enseguida 🙂";
+  var demoAnswerEs = "¡Buena pregunta! Somos Partner Premium de Zoho en España con más de 15 años de experiencia: ayudamos con consultoría, implementación, migración, integraciones y soporte de todo el ecosistema Zoho. Si quieres, déjanos tu email en el formulario de contacto y un especialista te escribe enseguida 🙂";
+  var demoAnswerEn = "Good question! We're a Zoho Premium Partner in Spain with over 15 years of experience: we help with consulting, implementation, migration, integrations and support across the whole Zoho ecosystem. If you'd like, leave us your email in the contact form and a specialist will write to you right away 🙂";
+  var demoFollowupEs = "Esto es solo una demo visual del asistente — ¡pero así se vería la conversación en la web real! 😊";
+  var demoFollowupEn = "This is just a visual demo of the assistant — but this is how the conversation would look on the real site! 😊";
+  function isEnglish(){ return window.__conpasLang === 'en'; }
 
   function toggle(){
     var isOpen = panel.classList.toggle('open');
@@ -1513,7 +1517,7 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
     body.scrollTop = body.scrollHeight;
     setTimeout(function(){
       typing.remove();
-      addMessage(demoAnswer, 'bot');
+      addMessage(isEnglish() ? demoAnswerEn : demoAnswerEs, 'bot');
       answered = true;
     }, 1100);
   }
@@ -1526,7 +1530,7 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
     if(!answered) respond();
     else {
       setTimeout(function(){
-        addMessage("Esto es solo una demo visual del asistente — ¡pero así se vería la conversación en la web real! 😊", 'bot');
+        addMessage(isEnglish() ? demoFollowupEn : demoFollowupEs, 'bot');
       }, 700);
     }
   }
