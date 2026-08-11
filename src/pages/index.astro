@@ -1,28 +1,545 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// deterministic PRNG so the confetti layout stays stable across rebuilds
+function mulberry32(seed) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const CONFETTI_SHAPES = ['shape-tri1', 'shape-tri2', 'shape-para', 'shape-rhombus'];
+const CONFETTI_COLORS = ['c-green', 'c-magenta', 'c-blue'];
+
+// placeholder logo slots for the "empresas que confían en nosotros" marquee — swap each
+// placeholder for a real <img src="..."> once the client logos are available. Each row's list is
+// duplicated so the CSS animation can loop seamlessly (translate exactly one set-width, then reset).
+const TRUST_LOGOS_ROW1 = ['Logo 1', 'Logo 2', 'Logo 3', 'Logo 4', 'Logo 5', 'Logo 6', 'Logo 7'];
+const TRUST_LOGOS_ROW2 = ['Logo 8', 'Logo 9', 'Logo 10', 'Logo 11', 'Logo 12', 'Logo 13', 'Logo 14'];
+
+// simple generic glyphs for the "Productos" mega-menu — not a reproduction of Zoho's own icon
+// artwork, just a small distinct symbol per app in the site's own thin-stroke icon style.
+const MEGA_ICON = {
+  headset: '<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',
+  flag: '<path d="M6 21V4h13l-3 4 3 4H6"/>',
+  doc: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/>',
+  megaphone: '<path d="M3 10v4h3l7 4V6l-7 4H3z"/><path d="M14 9a3 3 0 010 6"/>',
+  share: '<circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M8 11l8-4M8 13l8 4"/>',
+  chat: '<path d="M4 5h16v11H9l-5 4V5z"/>',
+  form: '<rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 3V2h6v1M9 9h6M9 13h6M9 17h3"/>',
+  target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
+  calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/>',
+  ticket: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16"/><path d="M9 14l2 2 4-4"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  drive: '<path d="M4 6h6l2 2h8v11H4z"/>',
+  kanban: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v10"/>',
+  sprint: '<path d="M4 12h13M13 6l6 6-6 6"/>',
+  video: '<rect x="3" y="6" width="12" height="12" rx="2"/><path d="M15 10l6-3v10l-6-3"/>',
+  screen: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  searchUser: '<circle cx="10" cy="8" r="3.5"/><path d="M4 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="17" r="3"/><path d="M20.4 19.4L23 22"/>',
+  people: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15 14.2c2.8.4 5 2.6 5 5.8"/>',
+  invoiceBook: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 12h6M9 15h6M9 18h3"/>',
+  receipt: '<path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21z"/><path d="M9 8h6M9 11h6M9 14h4"/>',
+  box: '<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/>',
+  refresh: '<path d="M4 12a8 8 0 0113.6-5.7M20 12a8 8 0 01-13.6 5.7"/><path d="M17 3v4h-4M7 21v-4h4"/>',
+  wallet: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14" r="1.3" fill="#fff" stroke="none"/>',
+  support: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M6.3 6.3l3.3 3.3M17.7 6.3l-3.3 3.3M6.3 17.7l3.3-3.3M17.7 17.7l-3.3-3.3"/>',
+  puzzle: '<path d="M4 9h4a2 2 0 100-4V4h6v3a2 2 0 102 2h3v6h-3a2 2 0 100 4v3h-6v-3a2 2 0 10-4 0v3H4V9z"/>',
+  flow: '<circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 6h10M6 8l5 8M18 8l-5 8"/>',
+  gear: '<path d="M12 8a4 4 0 100 8 4 4 0 000-8z"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  chart: '<path d="M4 20V12M10 20V6M16 20v-9"/><path d="M2 20h20"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  network: '<circle cx="12" cy="4" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M12 6v6M12 12l-7 6M12 12l7 6"/>',
+  code: '<path d="M8 8l-5 4 5 4M16 8l5 4-5 4M13 5l-2 14"/>',
+  building: '<path d="M4 21V6l8-3 8 3v15"/><path d="M4 21h16M9 21v-5h6v5M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/>',
+  link: '<path d="M9 15l6-6"/><path d="M10 6l1-1a4 4 0 015.6 5.6l-1 1M14 18l-1 1a4 4 0 01-5.6-5.6l1-1"/>',
+  cloud: '<path d="M7 18a4 4 0 01-.6-7.96A5 5 0 0116.9 9.1 4.5 4.5 0 0117.5 18H7z"/>',
+};
+
+const MEGA_COLORS = ['c-green', 'c-blue', 'c-magenta'];
+
+const MEGA_MENU = [
+  {
+    groups: [
+      { title: 'Ventas', items: [
+        { name: 'Zoho CRM', icon: 'headset', featured: true },
+        { name: 'Zoho Bigin', icon: 'flag' },
+        { name: 'Zoho Sign', icon: 'doc' },
+      ]},
+      { title: 'Marketing', items: [
+        { name: 'Zoho Campaigns', icon: 'megaphone', featured: true },
+        { name: 'Zoho Social', icon: 'share' },
+        { name: 'Zoho SalesIQ', icon: 'chat' },
+        { name: 'Zoho Forms', icon: 'form' },
+        { name: 'Zoho Survey', icon: 'form' },
+        { name: 'Zoho MarketingHub', icon: 'target' },
+        { name: 'Zoho Backstage', icon: 'calendar' },
+        { name: 'Zoho Bookings', icon: 'ticket' },
+      ]},
+    ],
+  },
+  {
+    groups: [
+      { title: 'Colaboración', items: [
+        { name: 'Zoho Mail', icon: 'mail' },
+        { name: 'Zoho Workdrive', icon: 'drive' },
+        { name: 'Zoho Projects', icon: 'kanban', featured: true },
+        { name: 'Zoho Sprints', icon: 'sprint' },
+        { name: 'Zoho Meeting', icon: 'video' },
+        { name: 'Zoho Showtime', icon: 'screen' },
+      ]},
+      { title: 'RRHH', items: [
+        { name: 'Zoho Recruit', icon: 'searchUser' },
+        { name: 'Zoho People', icon: 'people', featured: true },
+      ]},
+    ],
+  },
+  {
+    groups: [
+      { title: 'Finanzas', items: [
+        { name: 'Zoho Books', icon: 'invoiceBook', featured: true },
+        { name: 'Zoho Invoice', icon: 'receipt' },
+        { name: 'Zoho Inventory', icon: 'box' },
+        { name: 'Zoho Subscriptions', icon: 'refresh' },
+        { name: 'Zoho Expense', icon: 'wallet' },
+      ]},
+      { title: 'Soporte', items: [
+        { name: 'Zoho Desk', icon: 'support', featured: true },
+      ]},
+      { title: 'Desarrollo', items: [
+        { name: 'Zoho Creator', icon: 'puzzle', featured: true },
+        { name: 'Zoho Flow', icon: 'flow' },
+        { name: 'Zoho Orchestly', icon: 'gear' },
+        { name: 'Zoho Analytics', icon: 'chart', featured: true },
+      ]},
+    ],
+  },
+  {
+    groups: [
+      { title: 'Productos destacados', items: [
+        { name: 'Zoho One', icon: 'grid', featured: true },
+        { name: 'Zoho ERP', icon: 'network', featured: true },
+        { name: 'Desarrollos sobre Zoho', icon: 'code' },
+        { name: 'Soluciones para sectores', icon: 'building' },
+      ]},
+      { title: 'Otros productos', items: [
+        { name: 'Integración Books y Sage', icon: 'link' },
+        { name: 'Salesforce', icon: 'cloud' },
+      ]},
+    ],
+  },
+];
+
+// reusing the exact glyphs already drawn for the .sector-card icons in the ERP Sectores section,
+// so the "Sectores" nav menu and that section always show the same icon per sector.
+Object.assign(MEGA_ICON, {
+  sectorHR: '<circle cx="8" cy="8" r="3"/><path d="M2 19c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M14.5 19c.2-2.6 2-4.7 4.4-5.3"/>',
+  sectorEducation: '<path d="M12 4L2 9l10 5 10-5-10-5z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>',
+  sectorTraining: '<rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M9 21h6M12 17v4"/><path d="M7 13l3-3 2 2 4-4"/>',
+  sectorLogistics: '<rect x="2" y="8" width="11" height="8" rx="1"/><path d="M13 11h4l3 3v2h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+  sectorConsulting: '<path d="M4 4h16v12H8l-4 4V4z"/><circle cx="9" cy="10" r="0.6" fill="#fff"/><circle cx="12" cy="10" r="0.6" fill="#fff"/><circle cx="15" cy="10" r="0.6" fill="#fff"/>',
+  sectorTravel: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',
+  sectorLab: '<path d="M9 3h6M10 3v6l-6 10a1 1 0 001 1.5h14a1 1 0 001-1.5l-6-10V3"/>',
+  sectorRealEstate: '<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1v-9"/>',
+});
+
+const SECTORS_MENU = [
+  { name: 'ERP Recursos Humanos', icon: 'sectorHR' },
+  { name: 'ERP Consultoría', icon: 'sectorConsulting' },
+  { name: 'ERP Educación', icon: 'sectorEducation' },
+  { name: 'ERP Agencias de Viajes', icon: 'sectorTravel' },
+  { name: 'ERP Laboratorios', icon: 'sectorLab' },
+  { name: 'ERP Logística', icon: 'sectorLogistics' },
+  { name: 'ERP Inmobiliarias', icon: 'sectorRealEstate' },
+  { name: 'ERP Formación', icon: 'sectorTraining' },
+  { name: 'ERP FUNDAE', icon: 'doc' },
+  { name: 'ERP SEPE', icon: 'building' },
+];
+
+Object.assign(MEGA_ICON, {
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+  trophy: '<path d="M8 4h8v4a4 4 0 01-8 0V4z"/><path d="M8 5H5a3 3 0 003 3M16 5h3a3 3 0 01-3 3"/><path d="M12 12v4M9 20h6M10 16h4v4h-4z"/>',
+  heart: '<path d="M12 20s-7-4.3-9.5-8.8C1 8 2.4 5 5.5 5c1.9 0 3.3 1 4.5 2.5C11.2 6 12.6 5 14.5 5 17.6 5 19 8 18.5 11.2 16 15.7 12 20 12 20z"/>',
+  question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 014.9.7c0 1.8-2.4 2-2.4 3.8"/><circle cx="12" cy="17" r="0.6" fill="#fff"/>',
+  compare: '<path d="M8 3v14M8 3L4 7M8 3l4 4"/><path d="M16 21V7M16 21l4-4M16 21l-4-4"/>',
+  // same glyphs used by the .service-icon elements in the "Nuestros servicios" section
+  svcConsulting: '<path d="M4 4h16v12H8l-4 4V4z"/><circle cx="9" cy="10" r="0.6" fill="#fff"/><circle cx="12" cy="10" r="0.6" fill="#fff"/><circle cx="15" cy="10" r="0.6" fill="#fff"/>',
+  svcMigration: '<path d="M7 18a4 4 0 01-1-7.9A5 5 0 0115.5 8 4 4 0 0117 16"/><path d="M12 11v7M9 15l3-3 3 3"/>',
+  svcDev: '<polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/>',
+  svcTraining: '<path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z"/><path d="M6.5 9.7V15c0 1.4 2.5 2.8 5.5 2.8s5.5-1.4 5.5-2.8V9.7"/>',
+  svcIntegrations: '<path d="M9 15l6-6"/><path d="M8.5 12L6 14.5a3 3 0 004.5 4L13 16"/><path d="M15.5 12L18 9.5a3 3 0 00-4.5-4L11 8"/>',
+  svcSupport: '<path d="M4 13a8 8 0 0116 0"/><rect x="3" y="13" width="4" height="6" rx="1.4"/><rect x="17" y="13" width="4" height="6" rx="1.4"/><path d="M20 19v.5a3 3 0 01-3 3h-3"/>',
+  svcMarketing: '<path d="M3 10.5v3a1.5 1.5 0 001.5 1.5H6l3.5 3.5v-13L6 9H4.5A1.5 1.5 0 003 10.5z"/><path d="M13 8.5l7-3v13l-7-3"/>',
+  svcWebDesign: '<rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><circle cx="6" cy="7.2" r="0.6" fill="#fff"/><circle cx="8.3" cy="7.2" r="0.6" fill="#fff"/>',
+});
+
+const EMPRESA_MENU = [
+  {
+    groups: [
+      { title: 'Quiénes somos', items: [
+        { name: '¿Quiénes somos?', icon: 'person' },
+        { name: 'Casos de éxito', icon: 'trophy' },
+        { name: 'RSC', icon: 'heart' },
+      ]},
+    ],
+  },
+  {
+    groups: [
+      { title: 'Servicios', items: [
+        { name: 'Consultoría', icon: 'svcConsulting' },
+        { name: 'Migración', icon: 'svcMigration' },
+        { name: 'Formación', icon: 'svcTraining' },
+        { name: 'Soporte', icon: 'svcSupport' },
+        { name: 'Desarrollos', icon: 'svcDev' },
+        { name: 'Integraciones', icon: 'svcIntegrations' },
+        { name: 'Marketing online', icon: 'svcMarketing' },
+        { name: 'Big Data', icon: 'chart' },
+        { name: 'Diseño web', icon: 'svcWebDesign' },
+      ]},
+    ],
+  },
+  {
+    groups: [
+      { title: 'Recursos', items: [
+        { name: 'FAQs – Preguntas frecuentes', icon: 'question' },
+        { name: 'Manuales Zoho CRM', icon: 'doc' },
+        { name: 'Dossier Zoho', icon: 'drive' },
+        { name: 'Integración de Zoho con Sap B1', icon: 'link' },
+        { name: 'Comparativa Zoho vs. Salesforce vs. Dynamics', icon: 'compare' },
+        { name: 'Aplicaciones integrables con Zoho CRM', icon: 'grid' },
+      ]},
+    ],
+  },
+];
+
+// same generator + palette for every section so the confetti reads as one connected background.
+// pieces are placed on a jittered grid (not pure random) so they stay evenly spread instead of
+// clumping — a few can still touch/cross via the jitter overlap. Pieces whose center falls inside
+// `textZone` get a low opacity so any copy sitting on top of them stays readable.
+function makeConfettiGrid(seed, cols, rows, textZone, opts = {}) {
+  const {
+    skipProb = 0.12,
+    longRatio = 0.16,
+    colStart = -6,
+    colEnd = 106,
+    rowStart = -8,
+    rowEnd = 108,
+  } = opts;
+  const rand = mulberry32(seed);
+  const cellW = (colEnd - colStart) / cols;
+  const cellH = (rowEnd - rowStart) / rows;
+  const pieces = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (rand() < skipProb) continue;
+
+      const cellLeft = colStart + c * cellW;
+      const cellTop = rowStart + r * cellH;
+      // jitter within ~65% of the cell: keeps most pieces in their own "slot" (separated)
+      // while occasionally drifting far enough to touch/cross a neighbor.
+      const left = Math.round(cellLeft + cellW / 2 + (rand() - 0.5) * cellW * 0.65);
+      const top = Math.round(cellTop + cellH / 2 + (rand() - 0.5) * cellH * 0.65);
+
+      const isLong = rand() < longRatio;
+      // long pieces must always be the ribbon — a triangle stretched this tall turns into an
+      // oversized spike (straight sides + oblique cut ends read fine at any length, a triangle doesn't).
+      const shape = isLong
+        ? 'shape-para'
+        : CONFETTI_SHAPES[Math.floor(rand() * CONFETTI_SHAPES.length)];
+      const color = CONFETTI_COLORS[Math.floor(rand() * CONFETTI_COLORS.length)];
+      const rot = Math.round(rand() * 70 - 35);
+
+      let w, h;
+      if (isLong) {
+        w = Math.round(34 + rand() * 24);
+        h = Math.round(240 + rand() * 220);
+      } else if (shape === 'shape-rhombus') {
+        // bigger and clearly elongated, like a stretched kite — not a rotated square
+        w = Math.round(34 + rand() * 22);
+        h = Math.round(w * (2.0 + rand() * 0.9));
+      } else if (shape === 'shape-para') {
+        // a ribbon must read as a ribbon — w close to h just looks like a clipped square
+        w = Math.round(36 + rand() * 26);
+        h = Math.round(w * (1.7 + rand() * 0.7));
+      } else {
+        w = Math.round(48 + rand() * 46);
+        h = Math.round(58 + rand() * 70);
+      }
+
+      // tall pieces are anchored at their top edge, so a long ribbon can start above the text
+      // zone and still visually bleed into it — check the whole vertical span, not just the anchor.
+      const heightPct = (h / 1250) * 100; // 1250 ≈ typical combined wrapper height in px
+      const verticalOverlap = top <= textZone.y1 && top + heightPct >= textZone.y0;
+      const inTextZone = textZone && left >= textZone.x0 && left <= textZone.x1 && verticalOverlap;
+      const opacity = inTextZone ? 0.14 : 1;
+
+      pieces.push({ color, shape, left, top, w, h, rot, opacity });
+    }
+  }
+  return pieces;
+}
+
+// Hero and "Productos estrella" now share ONE confetti layer sitting behind both sections
+// (see hero-featured-wrap below), so pieces near the seam are never sliced by either section's
+// own clip-path/overflow — there simply is no boundary inside the shared layer.
+// All positions below are still authored as "% of hero" or "% of featured3" for readability,
+// then mapped into the combined layer's coordinate space with toHero()/toF3().
+const SPLIT_PCT = 42.5; // measured share of the combined height that belongs to the hero section
+const toHero = (y) => (y / 100) * SPLIT_PCT;
+const toF3 = (y) => SPLIT_PCT + (y / 100) * (100 - SPLIT_PCT);
+
+// text/card-safe zones (mapped into the shared layer) — pieces centered here get faded, not skipped.
+// Measured on the live page: the "Productos estrella" title sits at ~15%-25% of featured3's own
+// height, with a real, empty ~120px gap between the title and the card row right after it — that
+// gap (and the padding above the title) is fair game for full-opacity confetti, not just a blanket fade.
+const HERO_TEXT_ZONE = { x0: 0, x1: 54, y0: toHero(4), y1: toHero(90) };
+const FEATURED3_TEXT_ZONE = { x0: 0, x1: 64, y0: toF3(11), y1: toF3(29) };
+// zohoone's text (h2 + p + button) is centered, so its safe zone is a wide centered band
+const ZOHOONE_TEXT_ZONE = { x0: 15, x1: 85, y0: 24, y1: 88 };
+
+// base spread across each section's share of the layer, plus an extra denser pass at each bottom band
+const sharedConfetti = [
+  ...makeConfettiGrid(7, 7, 6, HERO_TEXT_ZONE, {
+    skipProb: 0.38,
+    longRatio: 0.05,
+    rowStart: toHero(-8),
+    rowEnd: toHero(108),
+  }),
+  ...makeConfettiGrid(6, 5, 2, HERO_TEXT_ZONE, {
+    skipProb: 0.55,
+    longRatio: 0.05,
+    rowStart: toHero(74),
+    rowEnd: toHero(98),
+  }),
+  ...makeConfettiGrid(23, 6, 3, FEATURED3_TEXT_ZONE, {
+    skipProb: 0.55,
+    longRatio: 0.3,
+    rowStart: toF3(2),
+    rowEnd: toF3(108),
+  }),
+  ...makeConfettiGrid(31, 8, 3, FEATURED3_TEXT_ZONE, {
+    skipProb: 0.48,
+    longRatio: 0.26,
+    rowStart: toF3(60),
+    rowEnd: toF3(112),
+  }),
+  // hand-placed accents: some visible pieces on the left, above/beside "Productos estrella"
+  { color: 'c-green', shape: 'shape-tri1', left: 3, top: toF3(4), w: 62, h: 92, rot: -10, opacity: 1 },
+  { color: 'c-magenta', shape: 'shape-rhombus', left: 12, top: toF3(0), w: 42, h: 100, rot: 8, opacity: 1 },
+  { color: 'c-blue', shape: 'shape-para', left: 6, top: toF3(20), w: 54, h: 150, rot: 12, opacity: 0.5 },
+  // hand-placed accents: fill the real ~120px gap between the title and the card row
+  // (featured3-local ~27%-42% — measured live, not guessed)
+  { color: 'c-blue', shape: 'shape-rhombus', left: 47, top: toF3(38), w: 32, h: 72, rot: 6, opacity: 1 },
+  { color: 'c-blue', shape: 'shape-tri1', left: 22, top: toF3(37), w: 40, h: 56, rot: -22, opacity: 1 },
+  // hand-placed accent: a blue ribbon in the narrow strip to the left of the first app card,
+  // running alongside it top to bottom (measured live: card spans ~66.6%-94.2% of the wrap).
+  // pulled a bit off the screen edge, not flush against it.
+  { color: 'c-blue', shape: 'shape-para', left: 2.6, top: toF3(46), w: 28, h: 250, rot: -5, opacity: 1, isAccent: true },
+  // hand-placed accents: two more ribbons in featured3's left margin/gap, spaced apart from the
+  // one above instead of stacking right under it.
+  { color: 'c-magenta', shape: 'shape-para', left: 3, top: toF3(19), w: 26, h: 140, rot: 6, opacity: 1, isAccent: true },
+  { color: 'c-green', shape: 'shape-para', left: 12, top: toF3(19), w: 34, h: 200, rot: -8, opacity: 1, isAccent: true },
+  // hand-placed accents: two ribbons in hero's own left margin — moved off the screen edge (there's
+  // real room between it and the H1) and spaced further apart vertically than before.
+  { color: 'c-blue', shape: 'shape-para', left: 3.1, top: toHero(3), w: 26, h: 180, rot: -4, opacity: 1, isAccent: true },
+  { color: 'c-magenta', shape: 'shape-para', left: 11.9, top: toHero(50), w: 28, h: 260, rot: 5, opacity: 1, isAccent: true },
+]
+  // exclusion zone: a piece kept landing just under the "Ver servicios" button and, with the
+  // new shape-para cut, reading as a bright pink rhombus sitting on top of it — drop it outright.
+  .filter((p) => !(p.left >= 22 && p.left <= 45 && p.top >= 37 && p.top <= 44))
+  // no confetti at all to the right of where the stat card sits — cleared for the full height of
+  // both hero and featured3, not just beside the card itself. Deliberate accents are exempt: their
+  // placement is hand-verified, not generated blind like the grid pieces these filters target.
+  .filter((p) => p.isAccent || p.left < 52)
+  // clear the strip between the "Las apps de Zoho más utilizadas" heading and the card row below
+  // it (measured live: heading bottom ~57%, cards start ~66.6% of the combined wrap height).
+  .filter((p) => p.isAccent || !(p.top <= 68 && p.top + (p.h / 1250) * 100 >= 55))
+  // no confetti below the app cards either — drop anything whose visible tail reaches into that
+  // bottom strip (measured live: the card row bottom sits at ~94.2% of the combined wrap height).
+  .filter((p) => p.isAccent || !(p.top + (p.h / 1250) * 100 >= 92))
+  // random grid pieces can land flush against the screen edge (left ~0%) — drop those too; the
+  // deliberate accents already sit a bit off the edge on purpose.
+  .filter((p) => p.isAccent || p.left >= 1)
+  // two random pieces kept landing right behind the hero's dark "Solicita información" button —
+  // drop them outright rather than just dimming them, since they clutter it even faded.
+  .filter((p) => !(p.left === 20 && p.top === 17) && !(p.left === 29 && p.top === 18))
+  .map((p) => {
+    // safety net: a piece generated for (or placed in) one section can still be tall enough to
+    // visually bleed into the OTHER section's text — re-check every piece against both zones,
+    // using its full vertical span, regardless of which grid/zone it was originally built with.
+    // this applies to the hand-placed ribbons too, so they fade the same as everything else
+    // whenever they cross a text zone, instead of standing out as more solid/colorful.
+    const heightPct = (p.h / 1250) * 100;
+    const overlapsZone = (zone) =>
+      p.left >= zone.x0 && p.left <= zone.x1 && p.top <= zone.y1 && p.top + heightPct >= zone.y0;
+    const shouldFade = overlapsZone(HERO_TEXT_ZONE) || overlapsZone(FEATURED3_TEXT_ZONE);
+    let opacity = shouldFade ? Math.min(p.opacity, 0.14) : p.opacity;
+
+    // every shape in hero + featured3 must read as translucent, corporate — none fully opaque,
+    // not even the deliberate accents — same cap for everyone, no piece stands out as more solid.
+    opacity = Math.min(opacity, 0.5);
+
+    return { ...p, opacity };
+  });
+
+// same confetti system for the "Zoho One" spotlight section, faded behind its centered text.
+// zohoone is much shorter than the shared hero+featured3 layer (~352px vs ~1250px), so piece
+// heights (in px) are a much bigger % of its own height — use its real height for the fade check.
+const ZOHOONE_HEIGHT_PX = 352;
+const zohooneConfetti = [
+  ...makeConfettiGrid(41, 8, 5, ZOHOONE_TEXT_ZONE, { skipProb: 0.1, longRatio: 0.12 }),
+  { color: 'c-blue', shape: 'shape-para', left: 6, top: -10, w: 40, h: 200, rot: 8, opacity: 1 },
+  { color: 'c-magenta', shape: 'shape-para', left: 94, top: -6, w: 38, h: 190, rot: -9, opacity: 1 },
+].map((p) => {
+  const heightPct = (p.h / ZOHOONE_HEIGHT_PX) * 100;
+  const inZone =
+    p.left >= ZOHOONE_TEXT_ZONE.x0 &&
+    p.left <= ZOHOONE_TEXT_ZONE.x1 &&
+    p.top <= ZOHOONE_TEXT_ZONE.y1 &&
+    p.top + heightPct >= ZOHOONE_TEXT_ZONE.y0;
+  return inZone ? { ...p, opacity: 0.1 } : p;
+});
+
+// newsletter section: same confetti system, but the user wants it transparent overall here
+// (not just behind the text), since it's a small, dark, understated closing bar.
+const NEWSLETTER_HEIGHT_PX = 240;
+const NEWSLETTER_TEXT_ZONE = { x0: 0, x1: 45, y0: 30, y1: 80 };
+const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
+  skipProb: 0.25,
+  longRatio: 0.12,
+}).map((p) => {
+  const heightPct = (p.h / NEWSLETTER_HEIGHT_PX) * 100;
+  const inZone =
+    p.left >= NEWSLETTER_TEXT_ZONE.x0 &&
+    p.left <= NEWSLETTER_TEXT_ZONE.x1 &&
+    p.top <= NEWSLETTER_TEXT_ZONE.y1 &&
+    p.top + heightPct >= NEWSLETTER_TEXT_ZONE.y0;
+  return { ...p, opacity: inZone ? 0.1 : 0.5 };
+});
 ---
 
 <Layout title="CONPAS — Home">
 <header>
+  <div class="brand-group">
   <img class="brand-logo" src="data:image/png;base64,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" alt="CONPAS">
+  <div class="lang-switch">
+    <button type="button" class="lang-flag active" id="langEs" aria-label="Español">
+      <svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#AA151B"/><rect y="4" width="24" height="8" fill="#F1BF00"/></svg>
+    </button>
+    <button type="button" class="lang-flag" id="langEn" aria-label="English">
+      <svg viewBox="0 0 24 16"><rect width="24" height="16" fill="#012169"/><path d="M0 0L24 16M24 0L0 16" stroke="#fff" stroke-width="2.6"/><path d="M0 0L24 16M24 0L0 16" stroke="#C8102E" stroke-width="1.2"/><path d="M12 0V16M0 8H24" stroke="#fff" stroke-width="4.4"/><path d="M12 0V16M0 8H24" stroke="#C8102E" stroke-width="2.4"/></svg>
+    </button>
+  </div>
+  </div>
   <nav>
-    <a href="#">Empresa</a>
-    <a href="#">Servicios</a>
-    <a href="#">Sectores</a>
+    <div class="nav-item">
+      <a href="#">Empresa</a>
+      <div class="mega-menu">
+        {EMPRESA_MENU.map((col) => (
+          <div class="mega-col">
+            {col.groups.map((group) => (
+              <>
+                <div class="mega-col-title">{group.title}</div>
+                {group.items.map((item, i) => (
+                  <a class="mega-link" href="#">
+                    <span
+                      class={`mega-icon ${MEGA_COLORS[i % MEGA_COLORS.length]}`}
+                      set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${MEGA_ICON[item.icon]}</svg>`}
+                    />
+                    {item.name}
+                  </a>
+                ))}
+              </>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="#">Productos</a>
+      <div class="mega-menu">
+        {MEGA_MENU.map((col) => (
+          <div class="mega-col">
+            {col.groups.map((group) => (
+              <>
+                <div class="mega-col-title">{group.title}</div>
+                {group.items.map((item, i) => (
+                  <a class={`mega-link ${item.featured ? 'featured' : ''}`} href="#">
+                    <span
+                      class={`mega-icon ${MEGA_COLORS[i % MEGA_COLORS.length]}`}
+                      set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${MEGA_ICON[item.icon]}</svg>`}
+                    />
+                    {item.name}
+                    {item.featured && (
+                      <svg class="mega-star" viewBox="0 0 20 20"><path d="M10 1.5l2.47 5.63 6.12.55-4.63 4.06 1.4 5.98L10 14.77l-5.36 2.95 1.4-5.98L1.4 7.68l6.12-.55L10 1.5z"/></svg>
+                    )}
+                  </a>
+                ))}
+              </>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+    <div class="nav-item">
+      <a href="#">Sectores</a>
+      <div class="mega-menu">
+        <div class="mega-col">
+          <div class="mega-col-title">Zoho ERP Sectores</div>
+          {SECTORS_MENU.map((item, i) => (
+            <a class="mega-link" href="#">
+              <span
+                class={`mega-icon ${MEGA_COLORS[i % MEGA_COLORS.length]}`}
+                set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${MEGA_ICON[item.icon]}</svg>`}
+              />
+              {item.name}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
     <a href="#">Blog</a>
     <a href="#">Contacto</a>
   </nav>
   <div class="header-actions">
     <a class="btn btn-primary">Solicita información</a>
   </div>
+  <button type="button" class="nav-toggle" id="navToggle" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
 </header>
 
-<section class="hero isolines">
+<div class="mobile-nav" id="mobileNav">
+  <a href="#">Empresa</a>
+  <a href="#">Productos</a>
+  <a href="#">Sectores</a>
+  <a href="#">Blog</a>
+  <a href="#">Contacto</a>
+  <a class="btn btn-primary" style="margin-top:8px;">Solicita información</a>
+</div>
+
+<div class="hero-featured-wrap">
+
+  <div class="confetti-bg" aria-hidden="true">
+    {sharedConfetti.map((p) => (
+      <span
+        class={`confetti ${p.color} ${p.shape} ${p.top < SPLIT_PCT ? 'confetti-hero' : 'confetti-f3'}`}
+        style={`left:${p.left}%; top:${p.top}%; width:${p.w}px; height:${p.h}px; transform:rotate(${p.rot}deg) translateZ(0); opacity:${p.opacity};`}
+      />
+    ))}
+  </div>
+
+<section class="hero hero-confetti">
 
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Consultores Zoho en España · +15 años de experiencia</div>
-      <h1>Traducimos tu negocio<br>al lenguaje Zoho</h1>
+      <div class="eyebrow">SOLUCIONES A MEDIDA DE CADA CLIENTE</div>
+      <h1>Consultores Zoho en España</h1>
       <p class="lede">Partimos de tus procesos, personas y objetivos, y lo llevamos a Zoho a través de consultoría, implementación, formación, soporte y desarrollos a medida — con el respaldo de la certificación oficial.</p>
       <p class="claim">Menos promesas. Más método. Más futuro.</p>
       <div class="cta-row">
@@ -46,7 +563,8 @@ import Layout from '../layouts/Layout.astro';
 
 </section>
 
-<section class="featured3 isolines">
+<section class="featured3">
+
   <div class="wrap">
     <div class="section-head">
       <div class="section-eyebrow">Productos estrella</div>
@@ -81,6 +599,30 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </section>
 
+</div>
+
+<section class="trustlogos">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Confianza</div>
+      <h2>Empresas que confían en nosotros</h2>
+    </div>
+  </div>
+  <div class="logo-row logo-row-1">
+    <div class="logo-track">
+      {[...TRUST_LOGOS_ROW1, ...TRUST_LOGOS_ROW1].map((name) => (
+        <div class="logo-item">{name}</div>
+      ))}
+    </div>
+  </div>
+  <div class="logo-row logo-row-2">
+    <div class="logo-track">
+      {[...TRUST_LOGOS_ROW2, ...TRUST_LOGOS_ROW2].map((name) => (
+        <div class="logo-item">{name}</div>
+      ))}
+    </div>
+  </div>
+</section>
 
 <section class="trust">
   <div class="wrap trust-grid">
@@ -132,6 +674,7 @@ import Layout from '../layouts/Layout.astro';
 
 <section class="services">
   <div class="wrap">
+    <div class="section-eyebrow">Servicios</div>
     <h2>Nuestros servicios</h2>
     <p>Cubrimos todo el ciclo del proyecto Zoho, con especialistas por área: consultoría, migración, desarrollo, formación, integraciones, soporte, marketing y presencia web.</p>
     <div class="service-grid">
@@ -208,7 +751,15 @@ import Layout from '../layouts/Layout.astro';
 </section>
 
 
-<section class="zohoone isolines dark">
+<section class="zohoone">
+  <div class="confetti-bg" aria-hidden="true">
+    {zohooneConfetti.map((p) => (
+      <span
+        class={`confetti ${p.color} ${p.shape}`}
+        style={`left:${p.left}%; top:${p.top}%; width:${p.w}px; height:${p.h}px; transform:rotate(${p.rot}deg) translateZ(0); opacity:${p.opacity};`}
+      />
+    ))}
+  </div>
   <div class="wrap">
     <h2>Zoho One</h2>
     <p>El sistema operativo para la empresa: más de 40 aplicaciones interconectadas que cubren la gestión de todas las áreas, con una licencia única y un panel de control unificado.</p>
@@ -219,6 +770,7 @@ import Layout from '../layouts/Layout.astro';
 <section class="howwork">
   <div class="wrap">
     <div class="section-head" style="text-align:left;">
+      <div class="section-eyebrow">Metodología</div>
       <h2>Cómo trabajamos</h2>
     </div>
     <div class="howwork-intro">
@@ -233,10 +785,33 @@ import Layout from '../layouts/Layout.astro';
         <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAcFBQYFBAcGBgYIBwcICxILCwoKCxYPEA0SGhYbGhkWGRgcICgiHB4mHhgZIzAkJiorLS4tGyIyNTEsNSgsLSz/2wBDAQcICAsJCxULCxUsHRkdLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCz/wAARCAFoAeADASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAABAECAwUGAAcI/8QAQRAAAQMCBAMFBgMHAwMFAQAAAQACAwQRBRIhMQZBURMiMmFxFEJSgZGhBxUzFiNTYrHB0SRDcqLh8DRjgpKywv/EABsBAQEBAQEBAQEAAAAAAAAAAAEAAgMEBQYH/8QALxEBAQACAgIBAwIDCAMAAAAAAAECEQMSITEEE0FRBWEUIjIVI0JxgZGx8KHB0f/aAAwDAQACEQMRAD8A+dFy5cpOTo/1G+qauBsQVJ6NwrVCNrRdel4bXtyDVeIYRiBhy6rY0PEGRou77rnY6R6bVVbZITqsDjDf9Y49UVTcQNmbbMha6QTvzBaxZyZLFI91mKgWeVscTZ3SslVttIVsQE5OiOqR4XR7oS2pTorGMaKto9wrSLZFB4CkDUgUrWrKNDUoBUoanZFBDYpMpU+VdkSg5aUwtKKLE0tCkGLSmlqJLPJJlUgxamFuvNFZEmQdFIMW+ZTSPM/VFZEmTyQg1j8R+qTX4j9UTkSZPIKQa3U3SWUzrNcBbdNL2KKIjVIG94FS5m3XNIJ0CCa8EBRFx6IvKmlnkjaBOJtsoH+isHMHRQPjHRWyCc1Quai3tsoHBaASUaJIR3lJMNEyHxLcQvLouyqZre6F2VIQ5V2VSlqbZSMsoZxoibIeo2UgB3XLjuuQltw0M2OwDzX07weMlGvmnhKPPjTD8JC+keFZwKa114Oa/wB7HLL+psHOuxDPcAuMwLd0JNP3t15eSCgsSN2FeV8ZtvC9em18o7MrzDjOdoheLrOHnKOGXmvIJReof6p7GpXszSOPUpWiy+090Oypj9lLyUT1EHlPRdY9FZGl8kw03ktMgFyMNPbkozBqUJHFM6M6IpmJyNG5Qjo7JiivsNxt7KgBx0K2lJU+0Rg9QvM6NuesjaOZXpdHSmGCF1t2qg9hcSZdpWQr2WkK29dHdhWQxKOzylRUOCazRykcFGPEhpZUjrEKyjfZVNObWRwcVaZHtlUrZgq4OKeHHqrSWInCcJwq8E9U7XqrSH+0Bd7S1AWPVLZWgNNS1MdVNQmVNLVaQs1bE01kaELUmVWkLNbH0TTWx/CULlSFqtLQk10fwuSGvjHuOQpakyq1CKNfH/Dd9QmGvZ/Dd9UMWpLI1EINcwn9In1Kaa1l/wBJDkJuVWohJrW/w0ntgvoxD2SWRqEV7cfhSe2nohsq6yNQpnVZKhfUkpC1Mc1GoUb5ioHSqR7VA4LQNe+4SwHvBMISw6OWkt4xeMJS1dBrGnkJFREJtlKQmEKCOyGqdkWQhanYqSuO65cd1yE0PBzg3F2+oXvHDdUGRuuea+euHqj2fFGOJsF63hmMsjpS/PbVfP5p/e7csv6nphxBrWeIIOTEWl3iC85reMmRktz/AHQTeMA4+P7rjy45X055behYliLWwnvLyXjDExI5zA690XiXFmeMgPWKq6t9bUl7jpyXT4/Dd9qePC27qBrVxbZStamuX0XqRFRPUrlE5SXzoAonU4RLioy5aZDPg7uyGMOhR0ju6hs+hQVfMyyFcLI2dwQUhUh2BxdrikQ817G7D7YRA62wXk3CzM2LR36r3jsWvwBhA2WbfJjCVbLxnRZHFY7ErbVbLZx0JWSxePdbEZl4UVu8iJB3ioSNUEVT8lYNHdCrqdWcYu0KFKApAEganhpUCgJwCUNKcGnolG2S2Tg09FxabbKRtk0tTw119l2Q9FJEQkIUpY7ok7N3Qo2kVkhapeyf0K7sndCjaQ2TbaIgQyH3Su9mk+BW0GI0TS1F+yy/D90hpJOdvqjcGwZCaWow0b+rU00h+II2dgyElkZ7Jr4l3sjRzRuHYSy6yLFM3qnCnajsZQVkwt8lY9g1NMLUdiqnsPRDvYVbyQhCyRBamQVrmFNjFnot7AhyLPW5Qs6Y9xTFDUjtLIi6SQphTk0pBpQlVsi0HVbFQV53XLjuuQjopHRSB7dwrmHiCZkPZgkKkT2t0WbjL7WtiqmuknNy4qBs8rdnlNsusnUOkgme7dxKnheoGRF3oi4mhivRia/d2UT5ADqlfJZuiAlmJdZENFGRqY57Sg87uq7MeqRtrHlQk6pkkqjEmqQdMe6hSe6pJX3ChJ7qkGmKFkRMmpQ0ikt+GX5MRb6r3zDHCbAbb2AK+eMHm7GuaV7nwrXCfCXNv7qxl7axVFfHlnlHmsli8WhW2xNv+qcRzCymLR3Dlv7M/dipm2kKHcEbVNtKUI8KKWm3CuqeO7FS0p74Wgo7ZVm1mniHyUjYPJTNAUgWNs7QiBPEClCcFbG0QgCXsAplytjaHsGhL2TeikKRW0b2beiXI22yVddYrUMc0dFG4gaqVyhk8JViadGA8XundmLblQwuvGLC9lK0Pza+FaoLkbfn9VHI1rRfYDdSkqKXWNwQg8jw17QDcOO6i7TM97Ru0pl3mCMlhzA2sks4TyEDQjQpMnl0hIlZooXvdYG/NS5S7IXHvBMkZmaQDzUUl9EoKivYAJM46rFMEAppUYlHVcZQjRI8IWQKd8rbboWSULUhDyBCv8SIkkCHebldYBNM7VF3VfA6xCMzXC2jiUhSXSXUnIOq2KLuhKk7qABcuXKDhup2juqFu6nZtZTUIW3OimhguQSpIoeZUrrMWbS7KA1RF+VMmqQBZD53SHyVpbTufmFhqonU7nG6ljswahSiVqUBNO8JhYRuEe+VtkM97VDQ909ykbKq8zXKeyVaAuR9117tQxfdSB+iEZJuh5N1M92qgeblRro3mOQOHJencC4wTH2bj5Ly9X/C2IGlrA0mwuizYj1SqkEr7+Sz+KR90q0o5e3ZdC4lHdpTEwVczLKVXvCuMTZaQqqkCCbTmz1f0R0Cz8Wj1eUTxYIoq0apAVAHhPEi51hME4KHtV3aq0NJ111B2yaZ/NWloRdJdDGfzTDUEc1aOqMJSXQRnceaYZXn3ii47MlGuKicRZCuebayW+aic6PnIT6FMx01oYxwj8JAXOqbbvaED2tON2vd80w1MDT3aZp/5ElPVdRjqxg3mChfXw/xCfkUM6sPuwwt/wDhf+qaa2cXDXht/haAnquqc1Yfo2OR3o1IZKgi4pZB6iyFdNUSDWWRw65io5GvDQXX1AOpunrFoW58/NrGergonSOG8rB6IMphKtQ6EumHOQlMNQ0bG6GKYU6Qk1ZGyjfVuPNQEpjirUKY1LjzUZmJ5qMlJdOkeXkpCUy666kmidYoxju6gIvEj4mXakHXSXS5CkLSFJ10LU7FE2KFqDoVIEuXLlMnMF3WVhDDZoJQMFs1yjxMAzdZrcPc8MCCnqC52ibPOXGwUUcZlfYJkFpAC93VWNNSOcB3SrHCcEM7gS1bOh4bswdz7LWmdvPqljYxlsqxziHEArf45wjM5rnxNIPksXUYVVU73B7CLeSNLYLMeq5K5jmGzhZIpOXA2XLlI7MpWvUCc0qJ7nKI7pzjomqVcjMLdlrWoNE0By1bCpR6tgZzQD0RGIR3jKD4fdeJqs61t4ipMFi8dnFUcgWlxlniWckG6CGvlcj6WfLbVV0mifBJayk0TJ7t3Tu3VfTy91SmQrOloV2xSmU9UHnPVdmPVR0KMp6pplHxIe65KT9sPNJ2x5BQ3Sg6qSQyu6qMvcd3FcSmlScSmEpSdFGSpHZkwlISmkqTiea6+lvukc4k329EwlKFQG7TY891HKQ5lw4kWGhOya2bLfS9/NJJO57QCAABZCREphTikyOds0lIRu3TCpTE88gE0wnmVFC4phKLEAcEop2jdSBWcdgnCGRxsAjLxM0UsMsTTdK0CFHIlbSO6K3E0NtE0OZvZCARUpB2R0UNgnhzegTs7VI0xJpi8lMHApSFIK6OwJVZVaXVzJ4CqasOpSAa5cuUyVpsnOkNrJgTi3S5U0burnCKPtJBoqlgu8LZcO0oOUkItGmu4cwkHKS1b2iwppYLtVVw9TtEbdFtaSMBo0VsWKefBWvYe7dZTHeF45IXnshf0XqXYtLNkBX0jHwOFhsrbN8Pl3iGgFHO5pbaxVCvRfxIoRDUvcBZedLRl25cuStY550CCRcEUygleNAUySlfF4gjcOqgK5cd1yQ5TUzss7D5qFPjNntPmox6lw28Oib6K+qm3iKzPCj80LfRauZt4/kgsRjLPEstINStnjTNHLHzgB5UQUo0UcW6llIULD3khaUztERdB07kUso66S6QpLjqon3XXTMw6rs7eqEfdcCjsLwarxdkjqSMvEZAceiMk4Vr4h32hvqQpKW6QlFT0MlPJkdYn1XNpCd7D5K2gRKYfRWgpIwLuKjJZGbNYPmrZ0r8rj7psmGw3c0epCLxRxloTk0I6LMkknUpnkXwt3yxMGsjPrdPogyun7KN5vuTkVMNVoeE2sM0t/Hoqoe3A4mjvyyOPkAP8qOWggiHdjJ/5OJV85oIVbWWAIXPydAYgxo0iYD6LpRn52Hko2ON1LluEaMDGBl7klRSCMCwGqnl0Qp1ctxVwaA3ZQTGyJ5IWfZbZASPObdKyQhMk8ZSNSyLZMQpRUWG6EBXF2iGhonKe2ck2QLZS3zRtJPG5wzsugrGm7xCtoKRsg1CHpRSZQRdqIlrooI7Mdqs7a0SrpIGRnqsrXsaHkNVlV4k6S4BVeymkqn3totT92bFcGEpxiNtleNwssZeyYaPTZXYaUwjN7pzhojpafIVA5nknaQRjvBbXh+QNa1Y5rCCr/Cajs3AFFT2Hh+cZGraUswLQvLuH8QDWt7y29FiDS0aoiakTdxBVk4EZUDa1uTdV+J1zRATmSzY8s/EoteJCvKV6Bx5XiUvaHXuvP1tmRI2PM4AK8w7DQ+1wqqADtm3WwwlrSAV5ubK4zw9HHjup4sPjY0DKqzGKJrW5gFpbCypMbkaG2Xi48r2enLGaYudmWQqJT1Dg6UqBfUnp4a5OaNUgT2hIje8JTARNBK2j5m9je/JeW4PXGnaADsr1+Pv7LLqgicalzF1lj6hrjKf8oyuxKWW+6qXPkc65uoukjcDb+iYyI5kWyJzmMJ0u3/KlZAAb9FIyCOyKa26RkYbz81M3QfbyQkZFuSAlnyzOHRWbx3SRc22VDOb1Mn/ACUk/b+a7tieaGCeEB6LwBWCDA6xznWzTf8A8qbFMbbd1nKp4ZpJ5OHi5gOV8jj/AGT6nBJn3Llvr4GwLakVExc4onKCN1GzCnQ80j2uj5rNmmpUNS8sGir3Sncomoku7UoGZwCCkbJ2gczkQqGoZ2c7m9CrWN+WUFC4rHacSDZyZ7F9AWmxVlglSaXE2Ovo/ulVg3VnhtI6oqWZdADclNEbaaZsbbkhU1XUskJsdUlZJJLLkzWaAqmZ4ZLlDrrMaGAqTOcqEY42ClzGyCbI+91A06p8l7KIGxWoKkcdELMd1OShpjoUgA/xFIErvEVwCWTr2TS5StjukdEOSCjvdFUxy6lQtj12uUfT4fI8ZnDK1VpkSisLdAkL3THdSexgGwF0bS4VNI4WYQFjcaQU9AZHC4urukw3KAS1W2GYUI2AvZqrZtM21iywXO5NyMzURta3KAgnQi2y10+GxvHhVXVYdlHdYVSrTM1EAKAkpj0WifhszrnKUO/DJxrkJW5WbFCYbclJC4xuurCSjkadWFCyQlp1BWts6XuFYp2Vu8tfQY43KLuXmkGZr1f0DnG2qLVrb0IY6MmjlQ4zxS1kTmZlHFEOxOvJZHiWKwcQSmXYs0ocbxE1tSddFVLneIrlthOxxa4FaPCcQDAA4rNtBdsFMwyMNwueeEymnTHLVbl+JRNivm1WYxbEhK4hpuq+SpmLbElCOcSblcuPhmN26Zcls05xubptrpQFI1gK9LiRjBdERxtPJIyIFFRQX5qR8ULeWiJEWniP1ToqY9VN7M62itjQN0IvuSpIoRdSmkkvop4KOUkaLUQSYWmIvo0AfZIQB5DVOlbaqkbzD7FNIA0veywUg29dE8kW3UQOmwTgTpvuonOuGalUEgvPIerj/VXzx3CdgqLck9SUIgCeAkG6cFJ6zwbA1vCdLceK5+6PqY2Bp0QfDcgi4ao2/wDtqepm0K7b8OelTVx72VNURG5VvPNuqupfc6LnWoo6pjg5AvuTYq5mbcIOSnzOuAstgWxlxAUOIuaIwzcqxcwQsLjyVZFG6urrDVoKggbRPMQflOqvqD9zTNNsvVHQ0gY1rctwFZNhp3w5HR2RWpGdq5s+kWp5qCKhkec7wr9tHA2WzW6Ir2QOAsNELSiZSHopfZdNldCiA3XSMhiYb2uos7LTnkEG+PKVbVdSxt7KmlnDnnVMFNdohZjoVO51wh3tc/YLTIM7qWNhKcKc5tUTFFfQBVokNa3RSR0kk7gGNJVlR4YZnC4Wpw7BWsaCGfZYuWm5FBh+A5LPkF3K1/KnOFgLBaSPDmtAuERHSDkFytrppTYfw+0kFzQStFSYIBazAjKKnAI0WgpIBYaLFtOlRDg+nhRIwW48K0kMDdNEU2maRsgskcGFvConYCHnVq2vsbTySigB5KDDjhxh9wfRIeGmEeALeCgHRO9gFtlbWnmlRwow37iqKrg9pJsz7L15+Hg8kFPh7ADdqd0aeNScHua64ali4emhOgK9RqKSNt+6FWzxsaDYBParqyDKSWGF2fkFjOJT4gvS6st7JwXmfFZDXuIWsPbOXpi3eIrl25XWXpcGngwV1hdqnOEZW6tW3GFgDRqY/Ci7kvN3d+rAy4Yb6NQzsIeT4V6H+S3PhXHBL+6nuurzr8qePdSjDH/CvQjgf8qT8i/kT3HVhGYY/oUQzDpG9VthgZ+FO/JXD3U911Y9lNK3kp2seN2rTOwd491MOEv+FPZaUbGm+oVhSMbmFwjW4U74UTFhpbrl2TMmbGCqO/WzvB/3Hf1UT7XBCf4iXbDMf6psl8t+i2C6OGuxS2trv5Jota6dy3+agSR3dJve3+FTNHdBVrMQGOI5AquYO4PRFJtlw2T8qTLyUXoGGYkIcKpo7+GMKSTEg7mqOnYRTxj+UKWy2xobJUh43Qr7uOi5oCma1qGg3s+bdc6nDGZjyR4aALlU+MYkyNvZMIzHYXVUp8Uqcz+yZqSrjAMK7OASPHedqpuFuCazG3Nr6mSOmpie6XG7negH916FHwpSwxhjZpHW56BfM5/1P43Bl1zy8/t5erj+Ly8k3IyjKUdFMKYBpNlon8O2v2Uxv0cP8Kvq6CopG2mjLQdnDUH5rp8f5/x/k3XHl5/H3HJ8fk4vOUUQj/fWR/7uGHM4hA1BfC4kDVBTT1FQctiAvY4J6rEMzi1iCcyabXUqyocHdIQ54Vy2hihj2CixNTQSZCSFTup3Ca1ltsUdG1hAACy7ntMzirYsCNp9e8nmMAbJz5ADdDyVHIK81enOaAUVRxhzgALoAOLzqVbYbZrgqqNNhNGDlJC1dLA1rBos5h0zWgK+irWhu6xXQd2Q6LgwBCmvaBuFE/EGDmjSXdO4AhXVLOwAXKwhxgM2KT9pHMPiWLi1t6bHUxj3giGVY6ry1nFoadXomPjKL+J91nVT1KGpDjurCEhy8+wbiJlUBleD81raOrzAarKXzWtslIbZCsmu1KZCgnyAWVZVuAujXyHKVQYrV9lG432TAr8RqmsadVmK/E2gGzlQcU8YeySujB1WMqOLJJSdCukxtZuUaqvxosDrOWDxysNVKblNnxeSe99LqtmlLzddccdOeV2HsuslUkEfaTMZ1K6sPob2UdFwpAeSsxD5KRtOvG9CsbRN6KQULeitWwAclIIR0VpKf8vb0SjDm/CrkQ+Sc2EdFBUDDR0S/lg+FXTYVIIfJKZ92Fj4VGcKHwrTdgOi72YHklMt+Vge6o56ERU0shGjGOd9AVrfZB0QGOQNh4exGW3gppHf9BSHzsz9IEW8N7dVxsQQNNbLm6RN05BLu7Vehydewvt5riOdjbdOLbN0+iQ77nXXRSQVZtTSADSxQjW90IqtJFM8ddFE1uizTDMvJJk1CmDVzYy57WjckBBXMUoDGjoFKJAopMPmj2BUBEsZ1BW5WdLBrwiGOAFyVVMmN9dFHWYiIYyAdU7WhWI4o2GIhp1RHA3BY4ymrKyvMjaSP92wsNiX+XoP6qgpMFxbGpQ+Oll7K/jcLD7r37gbBW4NwnR02QNeWl77fETcr4v6p836XF14sv5rft7j2/G4e2W8p4eQ4rwfxBwTWVVVh81SaCFrX+0tIaCCbWLb62O+izVZxfj1XPnditS22wjeWAfJtl9Ecb4XNifBeKUtM0umfCSxo3cQQ63zsvl4sc3UtICP03lx+Xhc+bGXKeN686Hycbw2TC2Stfgn4k41hk7BWS/mNPfvMl8YHk7f63Xr/DnEWD8WUDvZntk0/e08gs9nqOnmF84K3josXwWnpMXY2ajDnHspWOyvvvtvY/dPy/0zg5LMsP5Mvtr7/wCn/wAPB8rkksy/mj13iHAmYdVC1zBLrGT9wquGjha65AQEH4lDF8BOH47EI6yMh0NVGO48jcOHukjmNPRMdijWN0cPqvd8W8v0+vNP5p4/z/dw5evbeHpemeOJmlgqutxVrQQHLP12PWuA5UU+KPlJ7y9PthZYnimckAqkNSS4lRveZDclRF4amRm1K+Vztyo84UTpLpuZOhsUx+qOpqnIRqqkOsnCUhWjK1dPiuQDVGDHLDxLFe0uHNd7TJ1WerXZs3Y9/Mh349/MskZ5DzTS955p6js00mOk+8hpMbcfeVDcnmusrrF2q5ZiL55MoJKt6ShnqACAdVXcL0AqqnUXsV69geAN7NpyD6Ljnlq6jeM2z+A0VVRvBGYBej4RVvyNDzqnQ4IwM8CIjw7szoLLl7bnhcw1PdCIbMCqqKNzOaLY4DdCGPIMZss1jkbnwPAV46SzN1SYpKezcpPC+MMOk9uLj1WZfQljbkr0XipjZZSdjdZCqjAC7Y5+HO4s5LGWKK6OqQNUA7ddp5c666JonBtUwnqhLp8b8rweiaJX1O1oUzWpjQpmheR3Oa1PDErQpAEowMTgxPATw1INaxSNjTmtUzWIKMRpwjUwYnBqkg7NUvGh7HgbGpOlI8fUW/utGGrMfiQ7svw6xc/FG1n1e0KifOx7pt9LLm2J9Fz/ABW0HzTowMwubfJepxS2vvqNAmmK231B1T723uP8LnH7na+6kCrxaEDmSP6pjW7J+IEExtvu8JWDRYyahA25R2CUnteOUsNr5pAhg1aDgWNj+MaPPbK0k/ZZLd1HDzSD3FlMdp6XD2EaF62nFnFFJhkD2Me3OvHK7FKnHMTZBFdz5nhjR6lE8eb6P7DaDDK3G5nikYGsb4pHaNb/AJK1uC8F0lDaaoAq6nfM8d0egWvwfh+KhwyGmiZZsbQPU8yjmYWWO20X435n6ty89uPH4xfb4Pi8fH5y81TNo5DZrRp0W0wppbh0DXbhgBQEVGG8kfTu7IW5L5Myt9vVndzwMf4Vg+IuAuGMUrH1E8RpaiQ3e6CXs856kbX87LcueCFnsdwx9Qe3hGZ1rOb19F34+XPjy3hlo8PFx8uXXk9MnR8C8K4ZM2VjRPI090zy57H02+yy34oyCP8AL4WbOL3+WwC0NYJIXOaY332sdwsvxJhOJYxQsdTwST+y3fZupyncAc+Rsvq/Dyyvycebmz3r839np+b+nTj+Nl9JgwHyutpYbooVE0UPZBxLW7eSlpKCpqZhT01PJJJzblIt6k7fNXtFwrWGBzqpmR7joy97BfsNvx2mSkfI463Ubc19ltXcKP8AhUR4XePdV2g1WT79lE5pvqteeHXgeFCVGAvb7qey0zWU9E4MceSt/wAskjdq0kIyDDWycrFXYSM6In9Cl7GT4SthFgd7d26Oh4fB9xZubXVg/Z5fgK72eX4CvSouGmu9xFM4VYR4Pss/VPR5X7PL8BXezy/AV60OEWH/AG/sl/Y5n8P7I+quleSdhL8BS9hJ8BXrJ4OaP9v7KM8Ix7ZR9FfVi6VnuBKZwmBc06le6YLA3sW6LEYHgLKFwOULf4Y5kbWhcrd3brJqLyOmbk2TXUg5ImCZhYNVKcjtislVvpiAhpGuareQAIKaykr+2LdCqvE52mMhW0zWlUeJwgsOqk854lc3O4k6LFVVQyxGYXC13FNOO93ysDPT2cdSV1wxc8qFqZQ46IQqeRljooXtsvRHKo1wNiuXJYfWDApmhRMKmavI9KVoUgCjaVI1IPAUjQmNUos0XOykka1SCwGpVdU4lHTtN3AKgruLaeC47QfVBa91RGzmh5MSiZ7wXnNTxqZCRE6/ohBitfWHuh9ipbejS45CzeQfVY38SMdjqOCaqBr7mSSJv/WD/ZBxUFfUeIH5lU3HeHTUXDUb5TpJUMb9if7Jx9i+nnl7jkpIjcmwUBOhG6lY6/LdelySkggk7lNcfvoUgNvDukJIAvqd1IJXOtJH0zf2KlicLITEHWdH6n+idTS7arNjeKyAu3RNjxCTDKllVCbSMOidGQWKx4eqMFgxQvxkvdE0dxrGF5LrrHprVvpXPw/GsfkNQ9jyHa3ctLwnwlJh2IQ1dULua4EXC1k/FOBwUJdQYfWVBA7v7rs2/VyzVTxvUOma0UnsTSbZ5GZhf1XPkl5MLh+ZprDGyzL8PYKKNpiHoiTCCdlT8P4gysw+KQPDszRexuFetIIX8963G9b7j7t/MQmKyjc2yMNrKCQBFjUDFxGxUEszgOqnkQsmt1iukBz9nKe+xp9RdRGMZCIwGut3dNAVNImN3XOWyu2/GmPq556eqkjqWOEgOt+fmoPbW9D9Fu67DYcRohmaO1jHdd/ZUj+Hv5F+++D8vH5XHuTVnt+b+RxXiz0z3tjE01cdlcycPke6g5cDcPdXveZWuqYj0UEskThyRM+EvbfulV0tHIz3SohpuyvyUTHxNdyTpqRzhsQgZaGYG7SUhoqGWMkC4WgpBC4DZef07amN27ldUlTVMtZxRY1K3lPDCbbKxhp4T0WKgxCqYBcotuPzQjvLNxO22jpYugRDaOI8gsTDxe0GzjZWUPFURH6g+qzor+ppY2ttYKtdSNLuSravidhPdNx5IRvETnSDumxRotLFQ5BmuphOYVWMxprqYa6qrq8ZLLkFSbKDFDe10fHiJI3Xl8XEjhLZXNLxDmA1Um7Nc4jUoaWoJ2Kz8WNBw3RDcTa5BFTVDwqfEahzmG11YGqjeNUNO2KQKTzvGaSWpkde9lnZsCdqSCV6nNh0UhQs2ER5dAEzKxnrt5BVYNI07KrqqN0a9aq8Hab90LHYxhvZl3dXXHNi4sORY2XIioiyzEKHIu7jp9VtcpmOQbXqdjl5HoGNcpWlDMKnYVJO0qDEKjsKYu6BStKExVmekeL20SI8r4l4rnFY6niJ03KrMMw+XFps0tQ43O10Pj9H2eKS5XtcSeSdhVdNQvBykjyW+vjwN+fLf4XwnBG1pLQT1WlpcHhiA7oWPoeKSGDN3VYDi5jR7x9AsdadxsYqWJg5LB/jGWN4bw+Jh1dVE6eTD/lEP4wdbusKxXH2OPxKKhjfo1jnut8gFrHG7Fs0xJI9OakadSf6KIPB+SkYbE2O+q7uZ4O9tE08wCSm3JufmVxN/MFSV2In94weRUEc3Z6qTEXXnb1t/dCNbmKm8b4Wrap8kDsmYG29lpOFH4fSVYdWucG2JJtfMeQQOE4YcSos9M5jpmkMMZ0Prc6K2wzhDEazE4oZqeSngBvJM6wa0Dex2XOvrcfxJrtb4rZurMGnoo4oa5kD5CLksDueosf6powXAZcodWuJt3sjhld6tP8AYrKx4dFWVk3s7g0dpkjaNe71+a0lLhVK15gbdz2jWxBWNeNOs+Hx27uVW1F+ScOR2pcQLGyu7sLiTr/KOX1VvT8V0jpOzzOzAXI0Jt1sCsFWNM1dAygwySfK/J20jS1pJ8QBPKwvfqhjSYdVscagCGQEtaXO7N7PmvhfO/TcLn3kvn3Z58vXwzHVxt9et+NvUf2ioyP/AFDW+TtFOMSa8XBuDzXjpdR4dZhxJ0jGahjS17j9Bcq94bqu8+sFQ20oyxwh1w1vU294/ZfG5vhZceNz3df5O/TC6mPv8PQnVYKhfMCqduIXG33R9DS1eJPy0zY3O6Okaz/9ELxY8Oed1j5VwmM3Tnvuog/vI+fhbiWNokZhT5GAa5XNN+ljeyrXUuJwSPbUYbLCW2sHOF3ddrrv/ZvyNb6/+v8AlznNx26lFTVzKKjfPIbMjGYpKDi3AcQs3t+xfsRI0gfVR07cTkDmMoYbPaReSTQKjq+Ha2F7nVFDE9h2fE85fnzuv0f6d8bL4nFcs/d+z53ydc2cwn++26bBTVDM0T2SDq0gqGXDoyNgsI3h/HaaRr6eKalNswDXOY76HdafDarG6GEDFoJ5ohp2roS1w9TaxX1sM8c5uPn8nDlx1LPhUZv3QqyfBY3HwhagGOaISRuDmO2IULomlNcmPlwGM+6h3cPMv4VtHU7SuFI08kbLFDhxh9xSs4dA2YtoyiHRER0I6LUoYtvD5t4Sh6rhyQtNgV6KyhHwqT8ua4eFa2HitbwzVZjluq8YBXsk3dZe6vwVj/cCgPD8f8MfRWxp5PS4LVFoDwSrFmEzMGjV6Q3BGN9wJThDPg+ymnnsdFUA+FPfhMkw1at8MIYPcTvyxg91ZLzj9nrG+RStwns/dIXoBw5nRNGGNcbBt0VMK2lcz4k/M9nVbg4G4j9JMfw1I5t+wP0WdFiHVsrFBJi8rBstfUcNEA3hI+Sqp+HQb2aQrS2zruIHtOrUn7RtIsdFYVPDTrGzT9FUVPDsrb2ajUHkj8bife7lnMZropGu1BR1TgszL90qhr8ImN7XC3jILay9TYzuIUBVjPhU8ZPNBSU8kfiaV6JY5PpVj0RG5VZqI6amMs8jYo423c95sGjqSsXjf4pwU5dBg0IqXjT2iUEM+Tdz87LzyW+nS3T1ASNjYXvcGtG5JsAqTEuP+H8LJa6tbPIPch7y8SxPiHF8akzV1fLK3lGDlYPkNEJFHrddJh+Wbk9Pr/xekfduH0GUcnSH+yztZxtjuKgtlqRGw8mBZ2KMXF9UbEwXHJa6weU8THvcXPcXOOtyrCGOwuh4i3Q25Ipj/l6pQhl7AaJ5kc2yhEgOgTDL3RYKSZ0xCzfE05fPTNJtZjj9x/hXDpe7yH9VleIpJG1UTwcwyZfTVMFDB1zupWOzafVVQqnD3B9VKytLdSz7rTKyzgldm8gq4VzeYcE8VkVt7H0QkFc7/UDyaFC14auqHiSYuBuFGldtNTwfjbaDEyx5AZJbfZey4dPRTtDmMYM493RfOTQ64IuCOa1GCcY1mGBsc15IxsRuEV9/4Hzcek4uXxr1XtIwei7YSxsia8WIvGDa221lHLg1PTsmqWU8RkeCHFr3AuuddFlcK47oquwM4a48naFaenxiCpjy9oMrhvdY0+xMMcv5p5gg4ZJC1j4WkQObfKxuYg2AuDdCx0EBoxFUuZmj2a8b/wDmqthViOkiYXalqa+qY5tjYjz1RpzvFtnmcLUz8PqZS3s5ZSb2sdOSqG8GyQSXimySS2DXM0v522utm72Z7dY2/LRNbDFJILuf3PCS69kdT9NmIqSro5DnzuAuW67gG10aK+duhF7Gxu3ZXU0DZizMQ8taGC9x3RsNCoH0kTJQWxGxJJaH6EnfcXXky+HxZebjG9ZUPDiczWgXIB5AkIw4i8QNdmsTuCnVFLTdyxljsLEEZ+XW6ZJQ0slMQ2qyuttKwt19U4fGww9Rzyxt+xjcWffuvt6FFUtfVPbIY2ulawZnAC4A8/JV0GCmSIFtdS9o2/czWB16lE02FVjWyfv4WB2hHbD+y9Dlnw433DWyvqMRqC2jhdFGRla99i7QajTT0/orbChir60vZUPoKURkOidLnEhuLCwuAN0LHSRyTmOKaMytsDZ3O2ytY6SpjY4ltwNbjVY+lhM+8mq8/Lw3p03dHNq4eykYWNinY/XILNkb18j16oc1YvuldTw0ze0r5o6eGPVz5Xho09Vm5eI8KkrZG0tSJIr913Vbs2+Tz8P0r7aVtUCp45wVn4MQppCAJQrOnlida0gWNPOuIngo2IhVsGU2s4H5qxhbdIGx2KJY0Hkh4mlFxtKCe2MHkniFp5JzApAEpCadp5JDStPJFALrIQI0reiifSjorEhRuaoqaeNrXZL6qeCFrQLWuqnFquOmrw18oaTpqjaWoaIM2YG6rBtbRi1tQjIXl7gzK0lZ415B0Kb+YvBuHEFGqttJPhxkHhaqupwLMSe6FWvxef8Aiu+qhdi0x3ld9VaqFSYJlHIoCbBWuuC0JxxST4z9Uw4k7m5XlKur4aY+5aAFncQ4cyXD4x62W1OIjmUPUzRzwkOA1Qnl9bw2x17NVBW8NOF7NXqMkLXOcByQU9G0+6EdrDp49xPxRVcRVjmAujoY3fu4dr/zO6n+ipmM8laYxw/i1O19QWxywMGZ0kZGgHOyqIo5nDuTsv0K9c1rw4Xe/IlkY6IqNgBQIbXN1DGP9FIKiqZbPSO9QkLOMf8AgRMZAtppyVM3Ew09+KRnqFPHicBP6lvVDS8jkJcABbyUrZcpudiqdlbE+1pGn5qdtQCND91JZCYixFyfVNdMEEJ+eZRun53UhMs5Ggv0VHjP7yIEg907o50t+eiBrHZ4iEhRk2TS64T3jU6KMhaZIkSpFBy4Llw3UoLgYCixTBw2QMLrI6OYWU+pwcmMmqjdR32Cnp6rEKEg09VKy3K9x9FMx4cpRG1xR4e3DpLvG6F03GmMUxAlyzAdbhWkH4iuFhNTSN9DdUD6dpN7KB9L5K1Hqx5+XH1lv/Nt4PxBoX2zvcz/AJNKtabjKgltkqo7n+ZeWupR0UZpL8kadZ8vknvGX/v+r2eLiCnk1ErT80S3FonEHMCvD2wyRm7Hvb6EhTx1mIQnuVcwt/NdHV0nzMf8WF/7/s9vGINlfclTidrxYFeLwcRYxCdKkO/5NCtKfjbFYrZo4JPqEXF6Mfk8WX5n+j1guYWAE2AQFZVRsBDGtJHkvP8A9vqxwtJSNt/K/wD7JHcbuczK2kAJ5ufdZ1XbHm4vvl/y3xqWRAXDS53UBFCpbDTGWVwjjAuS42C8qn4/qInkxwxOk6m7v+yz2KcR4tjL71dW9zeTAbNHyTMa+b8r9X4ePxxztf8Aw2PGPElHicgpjVWpY3Zi1mrpHdfRZV2PQ04y0cBH8ziqPIU9kEkjrMaXE9FvUfl+bnz587nl7WcfE2IxT9o2Ujyurak4+xSN4Grz0CqKTAZZXA1DxE08hqVqsA4eNXXR0eF0hmqH6XIvbzJ5BZvVzxmTT8FYvxLxVj9NhtMOw7W5fI8EhjRu4r1L9luMqN37ufD6to2Ikcwn5EK14B4Ig4SoHSSES4hOB2snQfCPJa4uXG38OrBMoeJIoIi8jtqmUxytY9pFK0ODQ7zuCSjvbsUopnxTYbVTMjcWiZkeYPANs2nVX1VgtDVyvkkY8Pk8Ra8tuiqaFlJA2GPNlbtmNz9VyxmUvlu2aUkGNwuH72KWI9HsI/qnDFakNnjdRgVMD+/Hn2j0Oa/oVdzXkhcwOLS4WDt7KtOH1hLL4gHC57QmIXeDuLoz7f4Vjr7pW4hTO2lafmkqMTpKWndPLLZjd7C5+ilfh1A83dSQk/8AABC1GHRRDNSUULnua5hzOIsCLLWVsm4JraRuJ0b6gQNnaZHM7QN/l6qR00ZB74VfHhcUuSCWjEEUVy17JTck2+fJc/h2lcO7U1TPSW/9QrG2+4rr7KDGaOlrqh7ZCC7lrqqU4RidPCTh+JG3JrxmC1E+CULHgA1JmiLi+YtuXNto0IinwenfEX0JMNOXHs2OaQQETk3daFw8bYZtVxdTPtJT0tQ0c2kgpJeJMcg/UwF7x1Y8Fbt+EysBOdhA+SAdhMz5KiNmINDHNDxNcEMOUktH2+qcuSY+1MbWJfxtUs/VwCub6NBUf7eQA9/C65nrEVthQVDoGOfTuuWgnTnZDz4fUGNwiph2ljbONE3KSbomN3pkv28ww+OCqZ6xFOHHGDO3lkb6sK0TMPnmhinNGwQuAD7t72Yi4sEyTCoT4qMfNiplL6VxsZ93F+DPGlZb1BSw8R0VW/sqeq7QjWwCPqsMpGPYDh4cHOsXZBZvqhoaOmjleY6MQkbEstmHUeSLlPR1XU9QHyvN9Lc06WVvULEfiDxNNgNVSw01gZGlx5LKO4xxougaYX3qBmiHxjyWuls2z2jTY1E2Hh+sY6QBz4iAOq8u3rXeq3WKyvkoqgkl7y0rBtePaiTpcr0YTTnldrFri3YkKYVUzbWeUJnHVODtFtgaMRmsA5sbx5tSuq6eQfvKKMnqEFdKCgigzDJHd6B8foVK2iw52sVZJEehQIKUFSHjDZP9jEmO/wCRXOoMTadDFL6FBadE9sj2+F7h6FWikfFiEZOelcfNqGlfLYh8MjfUI2LEKqMWbM4jodUSMYqLAPZG8eYUmbkaCb2IUDmkLVnEYJBaWijPmEyQYVKNaZ0Z8k7DKkJtlpXYXh0vgnLT5qJ3DrX/AKVQwq2NM+uVxJw5Vs1aGuHkULJhFZHvE5WxoG02UzHlNdTTM8Ubh8k2zm7ghLpLYOimPVFxT6hVLX2RMUtuaxlHfDksWwmunh10DHKiWPuuNtj048qa105sQPIJGFTNK5Xksd8eU1lO0nYW9FI2jYSLtCeyyJjsqctdJyIPYonONmBoJ2AUraOIG5A+ifNURUsRlleGtHVZnEuIJakmKmvHH15ldsO2Tnn8ucawxGvoKYua2Nr5OgWenqpakm9mM+FugUG5udSU5oLjZoXeTT53L8jk5f6r4c1gup4aeSZ+WNhcfII7DsFmrCHHSPm47f8Adaalp6fDGDsgXP5vKzctM48Vvvwpqfh1zGiSrdkHwjcIuKKKDuxR5Dte1yiZqlz3auJvfTZaHhPg6t4inY5zXRU19XW1d6LG/wAm4z1Fbw/w1XcR4h7PRsdlvZ0jho3/AM6L6L4K4IoeFcOaI4w6ocLvkcO8SieF+FqLAKFkcMLWWHILQErnbtevRCmlKSmOeAgEcQ0JA7MonuzutyUosGqEu3EpnaAmwKjqJCG2buoqaMjvOJuUNJ35iLA2TLua3U3KeSm3SLEZKQlPJbdMJCds9TS49UheeqU2CZodlLVI5xIIOoKgdTwOblMLMt72tpdTlqjcEeKvLjI63JD1UbaqPI8uA/lNlK4FRu9VWS+KvMRNhDJWyZ3nKLBt9PopDNpsmOvZRuJVMZFbUU8b5ZQRMWsuCW2B1Ca1l7moyymwa3ugWATyVGSj6eO9rvlrQWswbCa45qnDqWdwFgZIg7+qDfgmHOrKed2DULvZWtbG3L4bA7dN1ZlyYXKy4scvZnJY8XqMEZICA82PVU8vBkM8h0ZrztZa8hdEzvLfarUYaXgA7xuI9HISTgiuj/TkevTQ1ODL8k96OseTScLYtHs4n1CHdg2LRbxB3yXsXZg8khp4zuwH5J70dY8ZdTYhH46Qn0TC+dnjpJR8l7M6gp37xNPyUTsFpH7wt+ie46vHPamjxMkb6tTm1cPx29QvWJOG6GTeEfRCS8HUEn+036J7rq82bPEdpG/VSteCNCD81t5eAqF+0YHog5Pw8g9xz2+hT3i61lrpcwG6vZOAJm/pVMg+aGk4LxOPwVN/UJ7QaqruCnAkbEop/DWNR8mPt5Id2F4vF4qPN6FW4tVzZpG7SOHzUzK6oZs+/qg3R1sfjopR6BROqHtFnQyN9WpS1GIuP6kTH38k10lJL+pTAeirG1jLakj1CeKqM7PCkJdS4dJ7pYUw4RSuF46i3qozICNCD80o2UnHBpm6xztd8032Wuh90OCkDnDZxCeJpPjKNbMqJlRNGe/C5ER18Rtma5vySCokHMFL21zd0bXfJc7x41ucmUEx1UDjYSD5ouMh3hcCPIqr/wBM496G3olDIAe5I9qxeGfZ0nPVlU0bKmMMmjLwNlWy4LSX7rHMUwfK0jJU39VI2pqhvlePVMwyx9VXkxvuK0YHDmuZXW6KeCgpoX5nMz22B2RZrmM/Xg06gJ7cQwV/jJYfmFveX3Uyxno/2yzQ1oDQOQUT6kkJzqnB921B/wDshX1uHi+WQuPqqG5thwLgEGNV4lqu8xp0byX0LgmF0uH0zMjWiw0C8K/Dp/s7zJFdweb68l6/Bi72xgFZs3Rcco13bN+IJDK34gsscZPRMOMnzR1Yaoyi26Gll13Wd/OfMpPzVpPjTMWcvLQtk1TnVGlgs9+at+NKMUF/GE3Fmbi8DnPdqNFMZAwKlbi4A3CR2KB/NZ6102umyB64uACqY8TY0bqT8xY4bo1VsRJLd9gn6Fu6DbUxk3uE4VDCfErS2IcW7XTQWsG6g7RpdfMmveHbOVo7EmQWuojKCoi4ZbXUZIa3dWltJ2uY2Q73OMtgdE4EAXumDKDe6QkdJlNkjtlGCHPuSlc8dVI1yjKc5yYSoGlMITiUwlSeZgXUscYuomImIJ0ErY1IIU5imaFaSEQ+SXsEUGhODArSCdiu7I9EZkC4sCtIH2STs/JFlgTS0K0thSxNLUSWqJ4VpICBddlaeQSOOqQOQT+yYfdCaaaJ27QlDk4OUkTsOgdvGPooX4JSPGsTT8kcCSpmtupKGThSgm3p2fRCycA4dL/stHotexnkiGR+StrTz2X8M6R3gLm+hQkv4XyD9KoeF6qyLyU7YR0R2p08Yl/DbFWfpz5vUIOTgXHotmh695bCOieKdp90J71dY+eZOGcdh8VGXeiFkw7FIf1KGUfIr6T9jjduxp+SQ4XTP8ULT8lfUo6x8zO9ojPfppG/JM9oaPE1w9QvpaTh3D5fFTMPyQc3BGDT3zUcev8AKn6n7Lo+dvaoxzUgqGHZ4+q9zqPwxwOe/wDpmt9FWz/g/hMngLmehT9SDq8cklBjN3XHqq1+UuXsc/4MQEHs6h4Vc/8ABeUXyVJ+iZyYrpXlLgL6I2gjgDS+Vtzfuhegn8F6y+lT9kRS/g7VMla59RcNPRV5MTMLsnCeIGFncbYBap/EZZHo/VFYXwNHRRhrzmKLqeD6dzNGWXOefT6k5OLUlZ2Xi6Rr7BydHxe8mxIKIm4KizG11DHwa1jyQSnVa78KZvFZtdzDZSs4qiO4UUvCxEfdOqqajhSoDyWPI8leWZ9HJp6fiCnlbmJRTsWpg0EutdYlmB4jTjuuJSPosVG9zZXlm8XHb4rZHGaYOt2ieMXgO0o+q89losTzElpKbFBiObvMNk7p+hx/l6MMUYdpfuntxW20v3Xn7o6uNgNnBDmvrInWIerdZ/hsL6r00Yw4e+E8Y04e8vNGYvON8yJjxmTmSndH8JPy9FGNnql/OvP7rAtxfTVIcXN9JCPmjbN+JW//ADxNON+qwBxeS2kgKVuMSc3BW4zfi1vfzu3NIccHVYgYq48wnivc7mncZ/hsmy/PQOaT89b1WQ9rJ95J7Rf31bjN+Pm2H54zmU787jPNYs1B+JIah3xK8MfRzjbfnEZ95OGLR/EFg31r28/uh3YsWm2chWoz9PKCmFFRlBRlFRlTmNjciGuQbCiGHRQEtKeHIcOTw5RT5l11GCuulHEqMlKSmEoBHFRPOicSo3KId+6ZzUjm3KQM1QSNBKma0rmMU7GLJIxiJjYkYxEMYraOjYiWMTWMRDGo21o5jFO1qaxqna1ZJWtUrWpGhSNCydFa1SBqQJwKFooCXLdcClupaJlXWSkpt0rTiEll1110jRLJbJLpHPDQkJGWzJ8pbk2Q8czb7plVUtaN11wjGVQyZSdlGWN6Id1WzN4kntTTzC6MpyxvRRuhYeSZ7Q3qu7cdVLZHU0Z5BRuo4zyUhmHVIZR1Vo9qHdQxn3Qozh8YPhCLMo6pplHVWmu9ByUEbxYsCClwWFxvkCtzIE1zwjRnJlPVUEmAxHZoCFfgLAdB9lpXPCjcQrTc5s592YfgxHIFQPwgc2LUuyqJwaeSurc+Rmyb8Ib0IQ78Ly7Eha50bTyChfAw8gjq1Pk5MkaR7NnFJaRnvFad9LGfdCgfRRnkrq3PlVnHVEreqidWyN6rQPw+M8lA/DIzyR1a/iVH+YPG91wxJxO5Vo/CWHkoH4Q3kFdT/EQI6tc5vMqmxGseActwVoPy4s2CZNhDJmatVrR+tjkt2ImMoaMFEsaUvmCWFENKHYCp2hSSgp4TAnhSPBS3SAJchKkaSmHVTdmSuEJQUBCTKihTnonezHohATGlEankbk91RtlaDq1ZpOYxTNYujfGeSKjbEeaCjYxTsap2QxnmpBA3kUFGxqnY1II7KQCyGj2hTNUTVICgpQngqIFPBQkgKcCowUt0FICluo7pbqJ900lNukJSDrpLpt110slJUM2Yg2Ul0ikDjjkLtym1VLNI3QqziDb7KdzWEbLcy0zYyT6CoB0KidS1LeS1roWHkmGnYeS13o0yRZUt90pmedu7StY6kYeQUTqFh5BPddWXNRKNwUntjx1Wkdh0Z90KF+Fxn3QnuOqh9uck9vKuH4Qw+6oH4M08ld11V3t6724dUS/BhyCgfg7htdPaLqYa4dU32xp5pr8JkGxKHfh0zdiU9ouok1Teqaahp5hAvpKhqgcydu7SrcWqszOOqYZgqp0krdwUw1Dx1Ttaq2Mo6pheCqo1Tk01jgpLQuCaSFWe2OS+2KQ8kKNwCE9sCQ1YUhBATbCyGNUOqT2odVaUulsKYdFI2EhTgBOAXmmbrcEQaRyS5iFLlumujuukz253AglspGy+Sh7Mp7WkLW2dJ2yJ4lQznFo0QktW6PcFSWvbpRUFZ9+JkGya2ve/YlSaP2k+ScakkKgbLM/Zylb7QeayRlVPLY2VTJU1IfoDZHBk53KeI3DcBBVra2oHVTx4lM06usiJCANWhV1S1hvpZC2uafFjzkCsIsQzf7gWKETnO7pcEdTU8lxd7/qotjHUlx8YRsLi73lmKaF7bHtCremlyWzFBXTWXG6XIQgxWRtHiTH4kxvvISwGicCq1mJMcd0XFP2g2WWhIclBTALjRdqEFJmXXUeZdmUkl0l1HmXZloH5kmZMzLrqB9111HmXZkgQx1lKXoZrk7OpJc6TOocy7MlJs6bnURckzqSXOkLlFnSF46qSQuTSQmZx1SZx1UjjbomFrTySF46pC8dVIjo2nkonQMPJSF7eqaXt6qQd9JGeSHfh7DyCNMjeqYZGdVbKskwxp5ISTCWn3VdumZ1UTpo+oVtM/JhA+FDvwi3JaN00XUKJ0sPUK7Jm3YWQo3Ycei0L3w9QoXviHMJ7LTPuw8/ConUHkQr58sY6Id9REOiu60pHUDupUTqKQbFXL6uAb2Q766nHMJ7rqtQ5Pa4rly8zula5PGq5cqCw4NB5J7WNXLl0xtYsjnwtIQNRTtIOi5cum652KyWnbfVqRkDQdGrlydjQyGOw8KJaCOS5cjY0UvI5Iaapc3kuXI2dAJq0lC+0Oe6wF1y5GyJgZMXA2VrTwSEbrlyNkfHC8DxKTI8DxLlytoPOJQLhyr5KiZh11XLlm1qJqSuIeMwIWjoqtjmixXLkSmrNkzbbrnztHNcuTtlC6paOYTfa29Vy5GyaaxvVIaxnULlytrRDWs6hNNczquXK2tGmvZ1SfmDPiXLlbq0X8yYPeCQ4oz4ly5W6dQ04qwe8mHFmD3guXI7U9YYcYZ8QTDjLB7wXLkdqusRnG2fEEw47GPfC5cjtT1iM48z4wmO4gjHvhcuV2p6xG7iKMe+FG7iSP4x9Vy5XarrETuJox74+qidxRH8Y+q5crtV1iF3FMf8AEChfxXH8a5cjdOogfxYz40O/itvxrlydjSB/FY+JQv4r/mXLkhA7io/EoX8Uv+Irly1INoH8TyHmVA/iSQ81y5amMG0D+IJHIaTGnu5rly1MYzt//9k=" alt="Compañero trabajando en su puesto">
               <img src="data:image/jpeg;base64,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" alt="Mascota divertida de la oficina con la camiseta 480">
         <img src="data:image/jpeg;base64,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" alt="Equipo en una reunión revisando la web de Conpas">
+        <img src="/images/howwork-7.jpg" alt="Equipo de Conpas trabajando frente al ordenador">
+        <img src="/images/howwork-8.jpg" alt="Compañeras de Conpas conversando en la oficina">
       </div>
     </div>
     <div class="steps-outer">
-    <div class="flow-strip"></div>
+    <div class="flow-strip">
+      <span class="confetti c-green shape-tri1" style="left:2%; top:45%; width:14px; height:18px; transform:rotate(15deg);"></span>
+      <span class="confetti c-blue shape-rhombus" style="left:7%; top:60%; width:9px; height:15px; transform:rotate(8deg);"></span>
+      <span class="confetti c-green shape-tri2" style="left:12%; top:38%; width:16px; height:20px; transform:rotate(-12deg);"></span>
+      <span class="confetti c-blue shape-para" style="left:17%; top:55%; width:13px; height:18px; transform:rotate(10deg);"></span>
+      <span class="confetti c-blue shape-tri1" style="left:22%; top:65%; width:12px; height:14px; transform:rotate(-20deg);"></span>
+      <span class="confetti c-green shape-rhombus" style="left:27%; top:42%; width:10px; height:17px; transform:rotate(20deg);"></span>
+      <span class="confetti c-blue shape-tri2" style="left:32%; top:58%; width:14px; height:18px; transform:rotate(-8deg);"></span>
+      <span class="confetti c-green shape-tri1" style="left:37%; top:48%; width:12px; height:16px; transform:rotate(18deg);"></span>
+      <span class="confetti c-blue shape-para" style="left:42%; top:62%; width:13px; height:20px; transform:rotate(-15deg);"></span>
+      <span class="confetti c-green shape-rhombus" style="left:47%; top:40%; width:10px; height:17px; transform:rotate(6deg);"></span>
+      <span class="confetti c-blue shape-tri2" style="left:52%; top:56%; width:12px; height:16px; transform:rotate(-22deg);"></span>
+      <span class="confetti c-green shape-tri1" style="left:57%; top:44%; width:16px; height:20px; transform:rotate(12deg);"></span>
+      <span class="confetti c-blue shape-para" style="left:62%; top:60%; width:13px; height:18px; transform:rotate(-9deg);"></span>
+      <span class="confetti c-green shape-rhombus" style="left:67%; top:50%; width:9px; height:15px; transform:rotate(24deg);"></span>
+      <span class="confetti c-blue shape-tri2" style="left:72%; top:64%; width:14px; height:18px; transform:rotate(-14deg);"></span>
+      <span class="confetti c-green shape-tri1" style="left:77%; top:46%; width:14px; height:18px; transform:rotate(9deg);"></span>
+      <span class="confetti c-blue shape-para" style="left:82%; top:58%; width:13px; height:16px; transform:rotate(-18deg);"></span>
+      <span class="confetti c-green shape-rhombus" style="left:87%; top:40%; width:10px; height:17px; transform:rotate(14deg);"></span>
+      <span class="confetti c-blue shape-tri2" style="left:92%; top:54%; width:12px; height:16px; transform:rotate(-11deg);"></span>
+      <span class="confetti c-green shape-tri1" style="left:97%; top:62%; width:12px; height:16px; transform:rotate(17deg);"></span>
+    </div>
     <div class="steps-grid">
       <div class="step-card">
         <div class="step-num-row"><span class="step-num" style="color:var(--green);">1</span></div>
@@ -275,46 +850,84 @@ import Layout from '../layouts/Layout.astro';
       <h2>¿Por qué elegirnos como Partner Zoho en España?</h2>
     </div>
     <div class="why-chart-wrap" id="whyWrap">
-      <svg class="why-chart" id="whyChart" viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
-        <line x1="10" y1="210" x2="390" y2="210" stroke="var(--line)" stroke-width="1.5"/>
-        <rect class="why-bar" x="20" y="160" width="36" height="50" rx="6" fill="var(--green)" opacity="0.55"/>
-        <rect class="why-bar" x="84" y="138" width="36" height="72" rx="6" fill="var(--blue)" opacity="0.55"/>
-        <rect class="why-bar" x="148" y="114" width="36" height="96" rx="6" fill="var(--magenta)" opacity="0.55"/>
-        <rect class="why-bar" x="212" y="88" width="36" height="122" rx="6" fill="var(--green)" opacity="0.55"/>
-        <rect class="why-bar" x="276" y="60" width="36" height="150" rx="6" fill="var(--blue)" opacity="0.55"/>
-        <rect class="why-bar" x="340" y="30" width="36" height="180" rx="6" fill="var(--magenta)" opacity="0.55"/>
-        <path class="why-line" d="M 38 146 L 102 124 L 166 100 L 230 74 L 294 46 L 358 16" fill="none" stroke="#14161B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle class="why-dot-pt" cx="38" cy="146" r="6" fill="var(--green)"/>
-        <circle class="why-dot-pt" cx="102" cy="124" r="6" fill="var(--blue)"/>
-        <circle class="why-dot-pt" cx="166" cy="100" r="6" fill="var(--magenta)"/>
-        <circle class="why-dot-pt" cx="230" cy="74" r="6" fill="var(--green)"/>
-        <circle class="why-dot-pt" cx="294" cy="46" r="6" fill="var(--blue)"/>
-        <circle class="why-dot-pt" cx="358" cy="16" r="6" fill="var(--magenta)"/>
+      <svg class="why-chart" id="whyChart" viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="300" x2="870" y2="300" stroke="var(--line)" stroke-width="1.5"/>
+        <path class="why-line" d="M 30 230 L 198 180 L 366 140 L 534 70 L 702 110 L 870 150" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="why-line" d="M 30 60 L 198 90 L 366 80 L 534 170 L 702 220 L 870 200" fill="none" stroke="var(--magenta)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="why-line" d="M 30 190 L 198 130 L 366 240 L 534 200 L 702 150 L 870 60" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- described points (one per column, rotating blue/magenta/green) -->
+        <circle class="why-dot-pt" cx="30" cy="230" r="6" fill="var(--blue)"/>
+        <circle class="why-dot-pt" cx="198" cy="90" r="6" fill="var(--magenta)"/>
+        <circle class="why-dot-pt" cx="366" cy="240" r="6" fill="var(--green)"/>
+        <circle class="why-dot-pt" cx="534" cy="70" r="6" fill="var(--blue)"/>
+        <circle class="why-dot-pt" cx="702" cy="220" r="6" fill="var(--magenta)"/>
+        <circle class="why-dot-pt" cx="870" cy="60" r="6" fill="var(--green)"/>
+
+        <!-- empty points: same lines, no card -->
+        <circle class="why-dot-pt why-dot-empty" cx="30" cy="60" r="4" fill="var(--magenta)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="30" cy="190" r="4" fill="var(--green)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="198" cy="180" r="4" fill="var(--blue)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="198" cy="130" r="4" fill="var(--green)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="366" cy="140" r="4" fill="var(--blue)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="366" cy="80" r="4" fill="var(--magenta)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="534" cy="170" r="4" fill="var(--magenta)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="534" cy="200" r="4" fill="var(--green)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="702" cy="110" r="4" fill="var(--blue)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="702" cy="150" r="4" fill="var(--green)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="870" cy="150" r="4" fill="var(--blue)"/>
+        <circle class="why-dot-pt why-dot-empty" cx="870" cy="200" r="4" fill="var(--magenta)"/>
       </svg>
 
-      <div class="why-point" style="left:9.5%;top:66.36%;">
+      <div class="why-point" style="left:3.33%;top:71.88%;">
         <div class="why-label"><div class="why-label-dot"></div>Experiencia demostrada</div>
         <div class="why-tooltip">Implantaciones reales de Zoho CRM y otras apps de la suite en pymes y grandes empresas.</div>
       </div>
-      <div class="why-point" style="left:25.5%;top:56.36%;">
+      <div class="why-point" style="left:22%;top:28.13%;">
         <div class="why-label"><div class="why-label-dot"></div>Certificación y reconocimiento</div>
         <div class="why-tooltip">Figuramos entre los partners premium más reconocidos por Zoho en España.</div>
       </div>
-      <div class="why-point" style="left:41.5%;top:45.45%;">
+      <div class="why-point" style="left:40.67%;top:75%;">
         <div class="why-label"><div class="why-label-dot"></div>Cobertura nacional</div>
         <div class="why-tooltip">Servicio a empresas en todo el territorio, combinando remoto y presencial.</div>
       </div>
-      <div class="why-point" style="left:57.5%;top:33.64%;">
+      <div class="why-point" style="left:59.33%;top:21.88%;">
         <div class="why-label"><div class="why-label-dot"></div>Servicios end-to-end</div>
         <div class="why-tooltip">De la consultoría a la puesta en marcha técnica, integraciones y mantenimiento.</div>
       </div>
-      <div class="why-point" style="left:73.5%;top:20.91%;">
+      <div class="why-point" style="left:78%;top:68.75%;">
         <div class="why-label"><div class="why-label-dot"></div>Resultados verificables</div>
         <div class="why-tooltip">Trabajamos con métricas y casos de éxito que demuestran el impacto real.</div>
       </div>
-      <div class="why-point" style="left:89.5%;top:7.27%;">
+      <div class="why-point" style="left:96.67%;top:18.75%;">
         <div class="why-label"><div class="why-label-dot"></div>Innovación continua</div>
         <div class="why-tooltip">Incorporamos IA y automatización a los proyectos para ir siempre un paso por delante.</div>
+      </div>
+    </div>
+    <div class="why-mobile-list">
+      <div class="why-mobile-item">
+        <div class="why-mobile-dot"></div>
+        <div><h4>Experiencia demostrada</h4><p>Implantaciones reales de Zoho CRM y otras apps de la suite en pymes y grandes empresas.</p></div>
+      </div>
+      <div class="why-mobile-item">
+        <div class="why-mobile-dot"></div>
+        <div><h4>Certificación y reconocimiento</h4><p>Figuramos entre los partners premium más reconocidos por Zoho en España.</p></div>
+      </div>
+      <div class="why-mobile-item">
+        <div class="why-mobile-dot"></div>
+        <div><h4>Cobertura nacional</h4><p>Servicio a empresas en todo el territorio, combinando remoto y presencial.</p></div>
+      </div>
+      <div class="why-mobile-item">
+        <div class="why-mobile-dot"></div>
+        <div><h4>Servicios end-to-end</h4><p>De la consultoría a la puesta en marcha técnica, integraciones y mantenimiento.</p></div>
+      </div>
+      <div class="why-mobile-item">
+        <div class="why-mobile-dot"></div>
+        <div><h4>Resultados verificables</h4><p>Trabajamos con métricas y casos de éxito que demuestran el impacto real.</p></div>
+      </div>
+      <div class="why-mobile-item">
+        <div class="why-mobile-dot"></div>
+        <div><h4>Innovación continua</h4><p>Incorporamos IA y automatización a los proyectos para ir siempre un paso por delante.</p></div>
       </div>
     </div>
     <div class="section-cta"><a class="btn btn-dark">Contacta con tu Partner Zoho</a></div>
@@ -521,9 +1134,23 @@ import Layout from '../layouts/Layout.astro';
     <div class="section-head" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;max-width:100%;">
       <div>
         <div class="section-eyebrow">Casos de éxito</div>
-        <h2 style="margin:0;">Empresas que ya confían en nosotros</h2>
+        <h2 style="margin:0;">Resultados que hablan por nosotros</h2>
       </div>
       <a class="btn btn-outline">Ver todos los casos</a>
+    </div>
+    <div class="cases-stats" id="casesStats">
+      <div class="cases-stat">
+        <div class="cases-stat-num blue" data-count="150" data-suffix="+">0</div>
+        <p class="cases-stat-label"><b>EMPRESAS</b> han digitalizado su negocio con nosotros</p>
+      </div>
+      <div class="cases-stat">
+        <div class="cases-stat-num green" data-count="80" data-suffix="+">0</div>
+        <p class="cases-stat-label">CRM <b>IMPLANTADOS</b> en los últimos 2 años</p>
+      </div>
+      <div class="cases-stat">
+        <div class="cases-stat-num magenta" data-count="85" data-suffix="%">0</div>
+        <p class="cases-stat-label"><b>REPITEN</b> trabajar con nosotros</p>
+      </div>
     </div>
     <div class="apps-carousel cases-carousel">
       <div class="apps-track" id="casesTrack">
@@ -544,6 +1171,14 @@ import Layout from '../layouts/Layout.astro';
 </section>
 
 <section class="newsletter">
+  <div class="confetti-bg" aria-hidden="true">
+    {newsletterConfetti.map((p) => (
+      <span
+        class={`confetti ${p.color} ${p.shape}`}
+        style={`left:${p.left}%; top:${p.top}%; width:${p.w}px; height:${p.h}px; transform:rotate(${p.rot}deg) translateZ(0); opacity:${p.opacity};`}
+      />
+    ))}
+  </div>
   <div class="wrap nl-row">
     <div>
       <h3>Suscríbete a nuestra newsletter</h3>
@@ -556,7 +1191,7 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </section>
 
-<footer class="isolines">
+<footer>
   <div class="wrap">
     <div class="foot-top">
       <div class="foot-about">
@@ -627,8 +1262,8 @@ import Layout from '../layouts/Layout.astro';
   </div>
 </div>
 
+<div class="chatbot-tease" id="chatbotTease">¿Algunas dudas?</div>
 <div class="chatbot-btn" id="chatbotBtn">
-  <div class="chatbot-dot"></div>
   <svg class="chatbot-robot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1.2" fill="#fff" stroke="none"/><circle cx="15" cy="14" r="1.2" fill="#fff" stroke="none"/></svg>
   <svg class="chatbot-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
 </div>
@@ -765,7 +1400,9 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
       if(e.isIntersecting){
         chart.classList.add('in-view');
         wrap.querySelectorAll('.why-point').forEach(function(p){ p.classList.add('in-view'); });
-        io.disconnect();
+      } else {
+        chart.classList.remove('in-view');
+        wrap.querySelectorAll('.why-point').forEach(function(p){ p.classList.remove('in-view'); });
       }
     });
   }, {threshold: 0.4});
@@ -789,6 +1426,50 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
     wrap.querySelectorAll('.why-label.active').forEach(function(l){ l.classList.remove('active'); });
   });
 })();
+
+(function(){
+  var stats = document.getElementById('casesStats');
+  if(!stats) return;
+  var nums = Array.prototype.slice.call(stats.querySelectorAll('.cases-stat-num'));
+  var DURATION = 1400;
+  var running = false;
+
+  function runCount(){
+    if(running) return;
+    running = true;
+    var start = null;
+    function step(ts){
+      if(start === null) start = ts;
+      var progress = Math.min((ts - start) / DURATION, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      nums.forEach(function(el){
+        var target = parseInt(el.dataset.count, 10);
+        var suffix = el.dataset.suffix || '';
+        el.textContent = Math.round(target * eased) + suffix;
+      });
+      if(progress < 1){
+        requestAnimationFrame(step);
+      } else {
+        running = false;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function resetCount(){
+    nums.forEach(function(el){ el.textContent = '0'; });
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        resetCount();
+        runCount();
+      }
+    });
+  }, {threshold: 0.4});
+  io.observe(stats);
+})();
 </script>
 
 <script is:inline>
@@ -799,6 +1480,7 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
   var input = document.getElementById('chatbotInput');
   var sendBtn = document.getElementById('chatbotSend');
   var suggestions = document.getElementById('chatbotSuggestions');
+  var tease = document.getElementById('chatbotTease');
   if(!btn || !panel) return;
 
   var answered = false;
@@ -807,7 +1489,10 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
   function toggle(){
     var isOpen = panel.classList.toggle('open');
     btn.classList.toggle('open', isOpen);
-    if(isOpen) setTimeout(function(){ input.focus(); }, 200);
+    if(isOpen){
+      setTimeout(function(){ input.focus(); }, 200);
+      if(tease) tease.classList.add('hidden');
+    }
   }
   btn.addEventListener('click', toggle);
 
@@ -855,6 +1540,335 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
       chip.addEventListener('click', function(){ handleSend(chip.textContent); });
     });
   }
+})();
+</script>
+
+<script is:inline>
+(function(){
+  var ES_TO_EN = {
+    // header / nav
+    "Empresa": "Company",
+    "Servicios": "Services",
+    "Sectores": "Sectors",
+    "Blog": "Blog",
+    "Contacto": "Contact",
+    "Solicita información": "Request information",
+
+    // hero
+    "SOLUCIONES A MEDIDA DE CADA CLIENTE": "SOLUTIONS TAILORED TO EACH CLIENT",
+    "Consultores Zoho en España": "Zoho Consultants in Spain",
+    "Partimos de tus procesos, personas y objetivos, y lo llevamos a Zoho a través de consultoría, implementación, formación, soporte y desarrollos a medida — con el respaldo de la certificación oficial.":
+      "We start from your processes, people and goals, and bring them to Zoho through consulting, implementation, training, support and custom development — backed by official certification.",
+    "Menos promesas. Más método. Más futuro.": "Fewer promises. More method. More future.",
+    "Ver servicios": "See services",
+    "Premium": "Premium",
+    "Partner": "Partner",
+    "años de experiencia": "years of experience",
+    "sedes · Galicia y Madrid": "offices · Galicia and Madrid",
+    "apps del ecosistema Zoho": "apps in the Zoho ecosystem",
+
+    // featured3
+    "Productos estrella": "Featured products",
+    "Las apps de Zoho más utilizadas": "The most used Zoho apps",
+    "Gestión completa de la relación con el cliente: ventas, marketing, automatización e informes en un mismo sitio.":
+      "Complete customer relationship management: sales, marketing, automation and reporting in one place.",
+    "Business Intelligence y reporting avanzado para generar informes, gráficos y cuadros de mando complejos.":
+      "Business Intelligence and advanced reporting to build complex reports, charts and dashboards.",
+    "Aplicaciones a medida sin programar, para construir soluciones propias de forma rápida y sencilla.":
+      "Custom, no-code apps to build your own solutions quickly and easily.",
+    "Ver más": "Learn more",
+
+    // trust logos
+    "Confianza": "Trust",
+    "Empresas que confían en nosotros": "Companies that trust us",
+
+    // trust / partner
+    "Partner Zoho España": "Zoho Partner Spain",
+    "Somos Partner Zoho certificado en España": "We are a certified Zoho Partner in Spain",
+    "Contamos con acreditaciones oficiales y experiencia probada implantando, adaptando y manteniendo soluciones Zoho en organizaciones de todos los tamaños.":
+      "We hold official accreditations and proven experience implementing, adapting and maintaining Zoho solutions in organizations of all sizes.",
+    "Acompañamos todo el ciclo: consultoría inicial, diseño de procesos, implementación de CRM y ERP, integraciones a medida y soporte post-implantación — adaptando la suite a tus procesos, no al revés.":
+      "We support the full cycle: initial consulting, process design, CRM and ERP implementation, custom integrations and post-implementation support — adapting the suite to your processes, not the other way around.",
+    "Ventas mensuales": "Monthly sales",
+    "Rendimiento": "Performance",
+    "activos": "active",
+
+    // services
+        "Nuestros servicios": "Our services",
+    "Cubrimos todo el ciclo del proyecto Zoho, con especialistas por área: consultoría, migración, desarrollo, formación, integraciones, soporte, marketing y presencia web.":
+      "We cover the full Zoho project cycle, with specialists by area: consulting, migration, development, training, integrations, support, marketing and web presence.",
+    "Consultoría": "Consulting",
+    "Configuración y asesoramiento sobre el ecosistema Zoho adaptado a tu negocio.": "Configuration and advice on the Zoho ecosystem tailored to your business.",
+    "Migración": "Migration",
+    "Traslado de tus datos desde tu sistema actual con garantías de integridad.": "Moving your data from your current system with integrity guarantees.",
+    "Desarrollos": "Development",
+    "Soluciones a medida sobre Zoho Creator y Salesforce cuando lo estándar no basta.": "Custom solutions on Zoho Creator and Salesforce when the standard tools aren't enough.",
+    "Formación": "Training",
+    "Capacitamos a tus equipos para que exploten todo el potencial de la herramienta.": "We train your teams to make the most of the tool's potential.",
+    "Integraciones": "Integrations",
+    "Conectamos Zoho con tus otras plataformas para centralizar la información.": "We connect Zoho with your other platforms to centralize information.",
+    "Soporte": "Support",
+    "Mantenimiento y acompañamiento continuo tras la puesta en marcha.": "Ongoing maintenance and support after go-live.",
+    "Marketing online": "Online marketing",
+    "Campañas de captación adaptadas a los objetivos de tu empresa.": "Acquisition campaigns tailored to your company's goals.",
+    "Diseño web": "Web design",
+    "Páginas web optimizadas para buscadores, integradas con tu CRM.": "Search-engine optimized websites, integrated with your CRM.",
+    "Contáctanos": "Contact us",
+
+    // apps
+    "Apps Zoho": "Zoho Apps",
+    "Nuestras soluciones con Zoho": "Our solutions with Zoho",
+    "Te ayudamos a sacar el máximo partido a las aplicaciones del ecosistema Zoho, identificando las que mejor se adaptan a tus procesos y acompañándote en su puesta en marcha.":
+      "We help you get the most out of the Zoho ecosystem apps, identifying the ones that best fit your processes and supporting you through their rollout.",
+    "Automatiza tu gestión comercial y centraliza contactos y oportunidades.": "Automate your sales management and centralize contacts and opportunities.",
+    "Atención al cliente organizada y multicanal desde una sola plataforma.": "Organized, multichannel customer support from a single platform.",
+    "Digitaliza procesos internos con apps que tú mismo puedes construir.": "Digitize internal processes with apps you can build yourself.",
+    "Dashboards interactivos conectados a todas tus fuentes de datos.": "Interactive dashboards connected to all your data sources.",
+    "Marketing Hub": "Marketing Hub",
+    "Automatización multicanal y seguimiento del ciclo de vida del cliente.": "Multichannel automation and customer lifecycle tracking.",
+    "Formularios online seguros, conectados al resto de tus apps Zoho.": "Secure online forms, connected to the rest of your Zoho apps.",
+    "Contabilidad y facturación en la nube con cumplimiento normativo.": "Cloud accounting and invoicing with regulatory compliance.",
+    "Gestión de RRHH: asistencia, vacaciones, nóminas y evaluaciones.": "HR management: attendance, time off, payroll and reviews.",
+
+    // zoho one
+    "Zoho One": "Zoho One",
+    "El sistema operativo para la empresa: más de 40 aplicaciones interconectadas que cubren la gestión de todas las áreas, con una licencia única y un panel de control unificado.":
+      "The operating system for the business: more than 40 interconnected apps covering every area of management, with a single license and a unified control panel.",
+
+    // how we work
+    "Metodología": "Methodology",
+    "Cómo trabajamos": "How we work",
+    "Interlocución unificada con apoyo de especialistas en cada área empresarial, pero bajo un único modelo de gobierno de proyecto coordinado: roles claros, responsables definidos y una metodología común. Sin silos ni improvisación.":
+      "A single point of contact backed by specialists in every business area, all under one coordinated project governance model: clear roles, defined owners and a shared methodology. No silos, no improvisation.",
+    "Diferenciamos desde el inicio lo que Zoho hace de serie de lo que requiere desarrollo a medida, para controlar alcance, costes y expectativas.":
+      "From day one we distinguish what Zoho does out of the box from what requires custom development, to keep scope, costs and expectations under control.",
+    "Diagnóstico": "Diagnosis",
+    "Partimos diagnosticando los objetivos de tu negocio.": "We start by diagnosing your business goals.",
+    "Roadmap": "Roadmap",
+    "Diseñamos el roadmap por fases.": "We design the roadmap in phases.",
+    "Implantación": "Implementation",
+    "Implantamos priorizando lo estándar.": "We implement, prioritizing the standard tools.",
+    "Formamos a tus equipos.": "We train your teams.",
+    "Evolución": "Evolution",
+    "Evolución y soporte continuo.": "Ongoing evolution and support.",
+
+    // why conpas
+    "¿Por qué Conpas?": "Why Conpas?",
+    "¿Por qué elegirnos como Partner Zoho en España?": "Why choose us as your Zoho Partner in Spain?",
+    "Experiencia demostrada": "Proven experience",
+    "Implantaciones reales de Zoho CRM y otras apps de la suite en pymes y grandes empresas.": "Real-world Zoho CRM and suite implementations in SMEs and large companies.",
+    "Certificación y reconocimiento": "Certification and recognition",
+    "Figuramos entre los partners premium más reconocidos por Zoho en España.": "We're among the premium partners most recognized by Zoho in Spain.",
+    "Cobertura nacional": "Nationwide coverage",
+    "Servicio a empresas en todo el territorio, combinando remoto y presencial.": "Service to companies across the country, combining remote and on-site work.",
+    "Servicios end-to-end": "End-to-end services",
+    "De la consultoría a la puesta en marcha técnica, integraciones y mantenimiento.": "From consulting to technical go-live, integrations and maintenance.",
+    "Resultados verificables": "Verifiable results",
+    "Trabajamos con métricas y casos de éxito que demuestran el impacto real.": "We work with metrics and success stories that show the real impact.",
+    "Innovación continua": "Continuous innovation",
+    "Incorporamos IA y automatización a los proyectos para ir siempre un paso por delante.": "We bring AI and automation into projects to always stay one step ahead.",
+    "Contacta con tu Partner Zoho": "Contact your Zoho Partner",
+
+    // custom dev
+    "Desarrollos a medida": "Custom development",
+    "Zoho CRM, ERP y aplicaciones personalizadas": "Zoho CRM, ERP and custom applications",
+    "Cada empresa tiene necesidades únicas. Adaptamos las herramientas Zoho a tu realidad, ampliando sus funcionalidades o integrándolas con otras plataformas.":
+      "Every company has unique needs. We adapt Zoho's tools to your reality, extending their functionality or integrating them with other platforms.",
+    "Automatizamos procesos, creamos módulos propios y construimos verticales a medida cuando la herramienta estándar no es suficiente.":
+      "We automate processes, build our own modules and create custom verticals when the standard tool isn't enough.",
+    "Saber más": "Learn more",
+
+    // sectors
+    "ERP Sectores": "ERP by sector",
+    "Soluciones específicas para cada tipo de negocio": "Specific solutions for every type of business",
+    "Diseñamos verticales ERP adaptados a la operativa real de cada sector, gracias a la flexibilidad modular de la suite Zoho.":
+      "We design ERP verticals tailored to the real operations of each sector, thanks to the modular flexibility of the Zoho suite.",
+    "Recursos Humanos": "Human Resources",
+    "Educación": "Education",
+    "Logística y producción": "Logistics and production",
+    "Agencias de viajes": "Travel agencies",
+    "Laboratorios farmacéuticos": "Pharmaceutical labs",
+    "Inmobiliarias": "Real estate agencies",
+    "Contáctanos para más información": "Contact us for more information",
+
+    // faq
+    "Preguntas frecuentes": "Frequently asked questions",
+    "FAQs": "FAQs",
+    "¿Qué significa ser Partner Zoho en España?": "What does it mean to be a Zoho Partner in Spain?",
+    "Implica contar con acreditaciones oficiales tras procesos de formación y certificación, lo que permite ofrecer consultoría, implementación, integraciones y soporte con el respaldo de Zoho.":
+      "It means holding official accreditations after training and certification processes, which allows us to offer consulting, implementation, integrations and support backed by Zoho.",
+    "¿Qué servicios ofrece Conpas como Partner Zoho?": "What services does Conpas offer as a Zoho Partner?",
+    "Consultoría y configuración, migración de datos, desarrollos e integraciones a medida, y formación y soporte continuo para que tu inversión en Zoho dé resultados reales.":
+      "Consulting and configuration, data migration, custom development and integrations, and ongoing training and support so your Zoho investment delivers real results.",
+    "¿Qué diferencia a Conpas de otros partners?": "What sets Conpas apart from other partners?",
+    "Certificación oficial, experiencia práctica en proyectos reales, desarrollos a medida propios y un enfoque integral que acompaña todo el ciclo del proyecto.":
+      "Official certification, hands-on experience on real projects, our own custom developments, and a comprehensive approach that supports the whole project lifecycle.",
+    "¿Cuánto tiempo tarda una implementación de Zoho?": "How long does a Zoho implementation take?",
+    "Depende del alcance: un proyecto de CRM estándar suele estar operativo en 4-8 semanas. Los desarrollos a medida o integraciones más complejas pueden extender el plazo, siempre con un roadmap claro por fases.":
+      "It depends on the scope: a standard CRM project is usually up and running in 4-8 weeks. Custom development or more complex integrations can extend the timeline, always with a clear phased roadmap.",
+    "¿Puedo migrar mis datos desde otro CRM sin perder información?": "Can I migrate my data from another CRM without losing information?",
+    "Sí. Auditamos tu sistema actual y migramos contactos, historiales y datos críticos con garantías de integridad, minimizando el tiempo de inactividad durante el proceso.":
+      "Yes. We audit your current system and migrate contacts, history and critical data with integrity guarantees, minimizing downtime during the process.",
+    "¿Zoho es adecuado para pequeñas empresas o solo para grandes corporaciones?": "Is Zoho suitable for small businesses, or only for large corporations?",
+    "Zoho escala desde autónomos hasta grandes multinacionales gracias a su estructura modular: empiezas con lo esencial y vas añadiendo funcionalidades a medida que creces, sin pagar de más desde el principio.":
+      "Zoho scales from freelancers to large multinationals thanks to its modular structure: you start with the essentials and add features as you grow, without overpaying from day one.",
+
+    // testimonials
+    "Testimonios": "Testimonials",
+    "Lo que dicen nuestros clientes": "What our clients say",
+    "Llevamos varios años trabajando con Conpas y estamos encantados con el servicio: siempre disponibles y entendiendo nuestras urgencias y necesidades reales.":
+      "We've been working with Conpas for several years and we're thrilled with the service: always available and understanding our real urgencies and needs.",
+    "CTO & CIO, Escrapalia": "CTO & CIO, Escrapalia",
+    "Gracias a la suite de Zoho hemos unificado todas las áreas de la empresa. Conpas fue clave para adaptar nuestros procesos inmobiliarios a la plataforma.":
+      "Thanks to the Zoho suite we've unified every area of the company. Conpas was key to adapting our real-estate processes to the platform.",
+    "Responsable de Marketing, Cárdenas Gran Canaria": "Marketing Manager, Cárdenas Gran Canaria",
+    "Fueron los únicos que entendieron lo que necesitábamos para un ERP y una plataforma digital pensada para nuestra escuela de idiomas. Seguimos creciendo juntos.":
+      "They were the only ones who understood what we needed for an ERP and a digital platform designed for our language school. We keep growing together.",
+    "CEO, Advantage": "CEO, Advantage",
+
+    // cases
+    "Casos de éxito": "Success stories",
+    "Resultados que hablan por nosotros": "Results that speak for us",
+    "Ver todos los casos": "See all cases",
+    "EMPRESAS": "COMPANIES",
+    "han digitalizado su negocio con nosotros": "have digitized their business with us",
+    "CRM": "CRM",
+    "IMPLANTADOS": "IMPLEMENTED",
+    "en los últimos 2 años": "in the last 2 years",
+    "REPITEN": "COME BACK",
+    "trabajar con nosotros": "to work with us",
+    "Puesta en marcha de varias aplicaciones de la suite Zoho.": "Rollout of several apps from the Zoho suite.",
+    "Zoho CRM para la gestión de agencias de viajes.": "Zoho CRM for managing travel agencies.",
+    "Gestión y mantenimiento continuo de Zoho CRM.": "Ongoing management and maintenance of Zoho CRM.",
+    "Implantación de Salesforce en el mayor grupo turístico del mundo.": "Salesforce implementation for the world's largest tourism group.",
+    "Salesforce para mover a más de mil millones de personas al día.": "Salesforce to move more than a billion people a day.",
+    "Interfaces entre Salesforce, SAP y portales de empleo.": "Interfaces between Salesforce, SAP and job boards.",
+
+    // newsletter
+    "Suscríbete a nuestra newsletter": "Subscribe to our newsletter",
+    "Te mantenemos informado de todas las novedades de Zoho.": "We'll keep you posted on all the latest Zoho news.",
+    "Suscribirse": "Subscribe",
+    "Tu email": "Your email",
+
+    // footer
+    "Consultores expertos en Zoho CRM, ERP y desarrollos a medida. Más de 15 años ayudando a empresas de toda España a sacar el máximo partido a la suite Zoho.":
+      "Expert consultants in Zoho CRM, ERP and custom development. Over 15 years helping companies across Spain get the most out of the Zoho suite.",
+    "Quiénes somos": "About us",
+    "RSC": "CSR",
+    "Madrid · Lugo": "Madrid · Lugo",
+    "© 2026 CONPAS — Consultores Zoho Premium Partner.": "© 2026 CONPAS — Zoho Premium Partner Consultants.",
+    "Una empresa de Cuatroochenta.": "A Cuatroochenta company.",
+    "Aviso legal": "Legal notice",
+    "Privacidad": "Privacy",
+    "Cookies": "Cookies",
+
+    // chatbot
+    "Asistente Conpas": "Conpas Assistant",
+    "En línea": "Online",
+    "¡Hola! Soy el asistente virtual de Conpas 🤖 ¿En qué puedo ayudarte hoy?": "Hi! I'm the Conpas virtual assistant 🤖 How can I help you today?",
+    "¿Qué servicios ofrecen?": "What services do you offer?",
+    "¿Cuánto cuesta un proyecto?": "How much does a project cost?",
+    "Quiero hablar con alguien": "I want to talk to someone",
+    "Escribe tu pregunta...": "Type your question...",
+    "¿Algunas dudas?": "Any questions?",
+    "¡Buena pregunta! Somos Partner Premium de Zoho en España con más de 15 años de experiencia: ayudamos con consultoría, implementación, migración, integraciones y soporte de todo el ecosistema Zoho. Si quieres, déjanos tu email en el formulario de contacto y un especialista te escribe enseguida 🙂":
+      "Good question! We're a Zoho Premium Partner in Spain with over 15 years of experience: we help with consulting, implementation, migration, integrations and support across the whole Zoho ecosystem. If you'd like, leave us your email in the contact form and a specialist will write to you right away 🙂",
+
+    // howwork photo alts
+    "Detalle simpático de un escritorio en la oficina": "A fun detail from a desk in the office",
+    "Compañeras revisando una pantalla juntas": "Colleagues reviewing a screen together",
+    "Compañero sonriendo en la oficina": "Colleague smiling in the office",
+    "Compañero trabajando en su puesto": "Colleague working at his desk",
+    "Mascota divertida de la oficina con la camiseta 480": "The office's fun mascot wearing the 480 t-shirt",
+    "Equipo en una reunión revisando la web de Conpas": "Team in a meeting reviewing the Conpas website",
+    "Equipo de Conpas trabajando frente al ordenador": "Conpas team working at the computer",
+    "Compañeras de Conpas conversando en la oficina": "Conpas colleagues chatting in the office"
+  };
+
+  var EN_TO_ES = {};
+  Object.keys(ES_TO_EN).forEach(function(k){ EN_TO_ES[ES_TO_EN[k]] = k; });
+
+  var ATTR_MAP = {
+    placeholder: ES_TO_EN,
+    alt: ES_TO_EN
+  };
+
+  function translateTextNodes(dict){
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(node){
+        var tag = node.parentNode && node.parentNode.tagName;
+        if(tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var node;
+    var nodes = [];
+    while((node = walker.nextNode())) nodes.push(node);
+    nodes.forEach(function(n){
+      var raw = n.nodeValue;
+      var trimmed = raw.trim();
+      if(!trimmed) return;
+      var translation = dict[trimmed];
+      if(translation !== undefined){
+        n.nodeValue = raw.replace(trimmed, translation);
+      }
+    });
+  }
+
+  function translateAttrs(dict){
+    document.querySelectorAll('[placeholder]').forEach(function(el){
+      var v = el.getAttribute('placeholder');
+      if(dict[v] !== undefined) el.setAttribute('placeholder', dict[v]);
+    });
+    document.querySelectorAll('img[alt]').forEach(function(el){
+      var v = el.getAttribute('alt');
+      if(dict[v] !== undefined) el.setAttribute('alt', dict[v]);
+    });
+  }
+
+  function setLang(lang){
+    var dict = lang === 'en' ? ES_TO_EN : EN_TO_ES;
+    translateTextNodes(dict);
+    translateAttrs(dict);
+    document.documentElement.lang = lang;
+    window.__conpasLang = lang;
+    try{ localStorage.setItem('conpas-lang', lang); }catch(e){}
+    var esFlag = document.getElementById('langEs');
+    var enFlag = document.getElementById('langEn');
+    if(esFlag && enFlag){
+      esFlag.classList.toggle('active', lang === 'es');
+      enFlag.classList.toggle('active', lang === 'en');
+    }
+  }
+
+  var esFlag = document.getElementById('langEs');
+  var enFlag = document.getElementById('langEn');
+  if(esFlag) esFlag.addEventListener('click', function(){ setLang('es'); });
+  if(enFlag) enFlag.addEventListener('click', function(){ setLang('en'); });
+
+  var saved = null;
+  try{ saved = localStorage.getItem('conpas-lang'); }catch(e){}
+  if(saved === 'en') setLang('en');
+  else { window.__conpasLang = 'es'; if(esFlag) esFlag.classList.add('active'); }
+})();
+
+(function(){
+  var toggle = document.getElementById('navToggle');
+  var drawer = document.getElementById('mobileNav');
+  if(!toggle || !drawer) return;
+
+  function closeDrawer(){
+    toggle.classList.remove('open');
+    drawer.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function toggleDrawer(){
+    var isOpen = drawer.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+  toggle.addEventListener('click', toggleDrawer);
+  drawer.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeDrawer); });
 })();
 </script>
 </Layout>
