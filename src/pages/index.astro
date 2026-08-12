@@ -15,11 +15,26 @@ function mulberry32(seed) {
 const CONFETTI_SHAPES = ['shape-tri1', 'shape-tri2', 'shape-para', 'shape-rhombus'];
 const CONFETTI_COLORS = ['c-green', 'c-magenta', 'c-blue'];
 
-// placeholder logo slots for the "empresas que confían en nosotros" marquee — swap each
-// placeholder for a real <img src="..."> once the client logos are available. Each row's list is
+// client logos for the "empresas que confían en nosotros" marquee. Each row's list is
 // duplicated so the CSS animation can loop seamlessly (translate exactly one set-width, then reset).
-const TRUST_LOGOS_ROW1 = ['Logo 1', 'Logo 2', 'Logo 3', 'Logo 4', 'Logo 5', 'Logo 6', 'Logo 7'];
-const TRUST_LOGOS_ROW2 = ['Logo 8', 'Logo 9', 'Logo 10', 'Logo 11', 'Logo 12', 'Logo 13', 'Logo 14'];
+const TRUST_LOGOS = [
+  { name: 'Aspasia', src: '/images/logos/aspasia.png' },
+  { name: 'CIECA', src: '/images/logos/cieca.png' },
+  { name: 'Ámbit Iberia', src: '/images/logos/ambit-iberia.png' },
+  { name: 'Euroformac', src: '/images/logos/euroformac.png' },
+  { name: 'Fandimat Distribuciones', src: '/images/logos/fandimat.png' },
+  { name: 'Formato Edu', src: '/images/logos/formato-edu.png' },
+  { name: 'Grupo Isega', src: '/images/logos/grupo-isega.webp' },
+  { name: 'Dignitae', src: '/images/logos/dignitae.webp' },
+  { name: 'El Neuropediatra', src: '/images/logos/el-neuropediatra.png' },
+  { name: 'Meniños', src: '/images/logos/meninos.png' },
+  { name: 'Truco y Trufa', src: '/images/logos/truco-y-trufa.jpg' },
+  { name: 'Cliente Conpas', src: '/images/logos/cieca-alt.png' },
+  { name: 'Cliente Conpas', src: '/images/logos/logo-min.png' },
+  { name: 'Cliente Conpas', src: '/images/logos/logoa.png' },
+];
+const TRUST_LOGOS_ROW1 = TRUST_LOGOS.slice(0, 7);
+const TRUST_LOGOS_ROW2 = TRUST_LOGOS.slice(7, 14);
 
 // simple generic glyphs for the "Productos" mega-menu — not a reproduction of Zoho's own icon
 // artwork, just a small distinct symbol per app in the site's own thin-stroke icon style.
@@ -610,15 +625,15 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   </div>
   <div class="logo-row logo-row-1">
     <div class="logo-track">
-      {[...TRUST_LOGOS_ROW1, ...TRUST_LOGOS_ROW1].map((name) => (
-        <div class="logo-item">{name}</div>
+      {[...TRUST_LOGOS_ROW1, ...TRUST_LOGOS_ROW1].map((logo) => (
+        <div class="logo-item"><img src={logo.src} alt={logo.name} loading="lazy" /></div>
       ))}
     </div>
   </div>
   <div class="logo-row logo-row-2">
     <div class="logo-track">
-      {[...TRUST_LOGOS_ROW2, ...TRUST_LOGOS_ROW2].map((name) => (
-        <div class="logo-item">{name}</div>
+      {[...TRUST_LOGOS_ROW2, ...TRUST_LOGOS_ROW2].map((logo) => (
+        <div class="logo-item"><img src={logo.src} alt={logo.name} loading="lazy" /></div>
       ))}
     </div>
   </div>
