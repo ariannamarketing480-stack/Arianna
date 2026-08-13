@@ -82,7 +82,9 @@
     display:inline-flex;align-items:center;justify-content:center;
     padding:11px 22px;border-radius:var(--radius);font-weight:600;font-size:14.5px;
     border:1.5px solid transparent; cursor:pointer;
+    transition:transform .2s ease, box-shadow .2s ease;
   }
+  .btn:hover{transform:scale(1.06);box-shadow:0 10px 22px -10px rgba(20,30,60,0.3);}
   .btn-primary{background:var(--green);color:#fff;}
   .btn-dark{background:var(--ink);color:#fff;}
   .btn-outline{border-color:var(--ink);color:var(--ink);}
