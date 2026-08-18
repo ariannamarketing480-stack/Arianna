@@ -211,7 +211,7 @@
   /* ---- shared section header ---- */
   .section-head{max-width:680px;margin:0 0 40px;}
   .section-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:10px;}
-  .section-eyebrow::before{content:"";width:14px;height:8px;background:var(--magenta);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);flex:none;}
+  .section-eyebrow::before{content:"";width:1.05em;height:1.1em;background:url('/images/logo-n.png') no-repeat center / contain;flex:none;}
   .section-head h2{font-size:29px;margin:0 0 12px;}
   .section-head p{font-size:15.5px;line-height:1.65;color:var(--ink-soft);margin:0;}
   .section-cta{display:flex;justify-content:center;margin-top:36px;}
