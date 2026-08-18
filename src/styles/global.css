@@ -94,6 +94,7 @@
   .btn-primary{background:var(--green);color:#fff;}
   .btn-dark{background:var(--ink);color:#fff;}
   .btn-outline{border-color:var(--ink);color:var(--ink);}
+  .btn-outline-green{background:#fff;border-color:var(--green);color:var(--ink);}
   .header-actions{display:flex;align-items:center;gap:22px;}
   .lang-switch{display:flex;align-items:center;gap:6px;}
   .lang-flag{
