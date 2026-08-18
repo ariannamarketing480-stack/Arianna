@@ -582,9 +582,14 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
         </div>
         <div class="partner-box partner-conpas">
           <svg class="conpas-mark" viewBox="0 0 593 620" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <polygon class="n-green" points="25,30 29,30 144.5,126 144.5,396 27,558 25,558" fill="var(--green)"/>
-            <polygon class="n-blue" points="144.5,126 445.5,365 445.5,489 144.5,250" fill="var(--blue)"/>
-            <polygon class="n-magenta" points="558,60 565,60 565,582 445.5,489 445.5,150" fill="var(--magenta)"/>
+            <defs>
+              <clipPath id="conpasClipGreen"><rect class="clip-green" x="-50" y="558" width="693" height="0"/></clipPath>
+              <clipPath id="conpasClipBlue"><rect class="clip-blue" x="-50" y="126" width="693" height="0"/></clipPath>
+              <clipPath id="conpasClipMagenta"><rect class="clip-magenta" x="-50" y="582" width="693" height="0"/></clipPath>
+            </defs>
+            <polygon class="n-green" points="25,30 29,30 144.5,126 144.5,396 27,558 25,558" fill="var(--green)" clip-path="url(#conpasClipGreen)"/>
+            <polygon class="n-blue" points="144.5,126 445.5,365 445.5,489 144.5,250" fill="var(--blue)" clip-path="url(#conpasClipBlue)"/>
+            <polygon class="n-magenta" points="558,60 565,60 565,582 445.5,489 445.5,150" fill="var(--magenta)" clip-path="url(#conpasClipMagenta)"/>
           </svg>
         </div>
       </div>
