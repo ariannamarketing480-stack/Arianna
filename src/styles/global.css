@@ -154,29 +154,26 @@
   .partner-text{font-weight:800;font-size:13.5px;line-height:1.2;white-space:nowrap;}
   .partner-text span{display:block;font-weight:800;color:var(--blue);}
   .conpas-mark{width:52px;height:54px;flex:none;overflow:visible;}
-  .conpas-mark polygon{opacity:0;transform-origin:center;transform-box:fill-box;animation-duration:5s;animation-iteration-count:infinite;}
-  .conpas-mark .n-green{animation-name:conpasFloatGreen;}
-  .conpas-mark .n-blue{animation-name:conpasFloatBlue;}
-  .conpas-mark .n-magenta{animation-name:conpasFloatMagenta;}
-  @keyframes conpasFloatGreen{
-    0%,2%{opacity:0;transform:translate(-15px,-11px) rotate(-9deg);}
-    9%{opacity:1;transform:translate(-15px,-11px) rotate(-9deg);}
-    24%{opacity:1;transform:translate(0,0) rotate(0deg);animation-timing-function:cubic-bezier(.16,1,.3,1);}
-    100%{opacity:1;transform:translate(0,0) rotate(0deg);}
+  .conpas-mark polygon{opacity:1;}
+  .conpas-mark rect{animation-duration:6.5s;animation-iteration-count:infinite;animation-timing-function:cubic-bezier(.65,0,.35,1);}
+  .conpas-mark .clip-green{animation-name:conpasGrowGreen;}
+  .conpas-mark .clip-blue{animation-name:conpasGrowBlue;}
+  .conpas-mark .clip-magenta{animation-name:conpasGrowMagenta;}
+  @keyframes conpasGrowGreen{
+    0%{y:558;height:0;}
+    15%,100%{y:30;height:528;}
   }
-  @keyframes conpasFloatBlue{
-    0%,6%{opacity:0;transform:translate(0,-20px) rotate(5deg);}
-    13%{opacity:1;transform:translate(0,-20px) rotate(5deg);}
-    28%{opacity:1;transform:translate(0,0) rotate(0deg);animation-timing-function:cubic-bezier(.16,1,.3,1);}
-    100%{opacity:1;transform:translate(0,0) rotate(0deg);}
+  @keyframes conpasGrowBlue{
+    0%,15%{y:126;height:0;}
+    30%,100%{y:126;height:363;}
   }
-  @keyframes conpasFloatMagenta{
-    0%,10%{opacity:0;transform:translate(15px,-11px) rotate(9deg);}
-    17%{opacity:1;transform:translate(15px,-11px) rotate(9deg);}
-    32%{opacity:1;transform:translate(0,0) rotate(0deg);animation-timing-function:cubic-bezier(.16,1,.3,1);}
-    100%{opacity:1;transform:translate(0,0) rotate(0deg);}
+  @keyframes conpasGrowMagenta{
+    0%,30%{y:582;height:0;}
+    45%,100%{y:60;height:522;}
   }
-  @media (prefers-reduced-motion: reduce){ .conpas-mark polygon{animation:none;opacity:1;transform:none;} }
+  @media (prefers-reduced-motion: reduce){ .conpas-mark rect{animation:none;}
+    .conpas-mark .clip-green{y:30;height:528;} .conpas-mark .clip-blue{y:126;height:363;} .conpas-mark .clip-magenta{y:60;height:522;}
+  }
   .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .stat-box{border-radius:var(--radius);padding:18px;}
   .stat-box.b1{background:rgba(51,92,170,0.09);}
