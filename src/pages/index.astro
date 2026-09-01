@@ -1260,7 +1260,9 @@ function initCarousel(cfg){
   window.addEventListener('resize', measure);
 
   var perView = window.innerWidth <= 880 ? 1 : (cfg.perView || 4);
-  var pages = Math.ceil(originalCards.length / perView);
+  // scrollByCard: advance one card at a time (card 1 leaves, card 4 appears, etc.)
+  // instead of jumping a full page at once.
+  var pages = cfg.scrollByCard ? originalCards.length : Math.ceil(originalCards.length / perView);
   for(var i=0;i<pages;i++){
     var d = document.createElement('div');
     d.className = 'apps-dot' + (i===0 ? ' active' : '');
@@ -1347,7 +1349,7 @@ function initCarousel(cfg){
 }
 
 initCarousel({trackId:'appsTrack', dotsId:'appsDots', carouselSel:'.apps-carousel:not(.cases-carousel)', nextId:'appsNext', prevId:'appsPrev'});
-initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-carousel', nextId:'casesNext', prevId:'casesPrev', perView:3, autoplay:false});
+initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-carousel', nextId:'casesNext', prevId:'casesPrev', perView:3, autoplay:false, scrollByCard:true});
 
 (function(){
   var cdVisual = document.querySelector('.cd-visual');
