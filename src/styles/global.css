@@ -409,6 +409,15 @@
     .why-confetti{animation:none;opacity:1;transform:scale(1);}
   }
 
+  /* momentary reset state used by the scroll-replay JS: forces every animation off (without
+     touching each element's own inline animation-delay) so re-adding it restarts them in sync */
+  .why-chart-wrap.why-resetting .why-flow-svg,
+  .why-chart-wrap.why-resetting .why-line-edge,
+  .why-chart-wrap.why-resetting .why-confetti,
+  .why-chart-wrap.why-resetting .why-point{
+    animation-name: none;
+  }
+
   .why-point{position:absolute;transform:translateX(-50%);z-index:2;opacity:0;
     animation-name:whyPointIn;animation-duration:.5s;animation-timing-function:ease;animation-fill-mode:forwards;
   }

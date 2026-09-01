@@ -1386,12 +1386,12 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
   });
 
   // replay the line/tooltips/confetti reveal every time the graphic scrolls into view,
-  // from either direction — restart each CSS animation via the "set to none, reflow, clear" trick.
-  var whyAnimEls = wrap.querySelectorAll('.why-flow-svg, .why-line-edge, .why-confetti, .why-point');
+  // from either direction — force animation-name:none via a class (not inline style, which
+  // would wipe the per-element animation-delay already set in each element's own style attribute).
   function replayWhyAnimation(){
-    whyAnimEls.forEach(function(el){ el.style.animation = 'none'; });
+    wrap.classList.add('why-resetting');
     void wrap.offsetWidth;
-    whyAnimEls.forEach(function(el){ el.style.animation = ''; });
+    wrap.classList.remove('why-resetting');
   }
   var whyIo = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
