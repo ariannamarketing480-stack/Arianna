@@ -572,7 +572,7 @@
   .proof-subhead h3{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;margin:0;color:#fff;white-space:nowrap;}
   .proof-subhead-line{flex:1;height:1px;background:rgba(255,255,255,0.25);}
   @media (max-width:880px){ .cases-stats{grid-template-columns:1fr;gap:28px;} }
-  .case-card{flex:0 0 calc(23% - 12px);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;display:flex;flex-direction:column;aspect-ratio:0.92;box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);}
+  .case-card{flex:0 0 calc(33.333% - 11px);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff;display:flex;flex-direction:column;aspect-ratio:0.92;box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);}
   .case-image{flex:0 0 70%;background:#EEF0F5;display:flex;align-items:center;justify-content:center;}
   .case-image svg{width:38%;height:38%;}
   .case-body{flex:1;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;}

@@ -1294,6 +1294,7 @@ function initCarousel(cfg){
     rafId = requestAnimationFrame(frame);
   }
   function play(){
+    if(cfg.autoplay === false) return;
     if(playing) return;
     playing = true;
     pos = track.scrollLeft;
@@ -1346,7 +1347,7 @@ function initCarousel(cfg){
 }
 
 initCarousel({trackId:'appsTrack', dotsId:'appsDots', carouselSel:'.apps-carousel:not(.cases-carousel)', nextId:'appsNext', prevId:'appsPrev'});
-initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-carousel', nextId:'casesNext', prevId:'casesPrev'});
+initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-carousel', nextId:'casesNext', prevId:'casesPrev', perView:3, autoplay:false});
 
 (function(){
   var cdVisual = document.querySelector('.cd-visual');
