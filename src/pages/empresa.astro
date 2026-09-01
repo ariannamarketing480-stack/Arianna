@@ -1,0 +1,113 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="CONPAS · Empresa">
+<Header />
+
+<section class="principles empresa-about">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Quiénes somos</div>
+      <h2>Un equipo cercano, con más de 15 años traduciendo negocio en Zoho</h2>
+      <p>Conpas nació en Galicia y hoy acompaña a empresas de toda España, desde pymes hasta grandes cuentas, en su relación con Zoho. Somos Zoho Premium Partner, pero antes que nada somos consultores: personas que entienden de ventas, finanzas, operaciones y atención al cliente, y que traducen esa realidad a procesos concretos dentro de la plataforma.</p>
+      <p>Trabajamos desde nuestras sedes en Galicia y Madrid, acompañando cada proyecto de principio a fin: diagnóstico, implementación, formación y soporte, con un método claro y sin promesas vacías. Menos promesas. Más método. Más futuro.</p>
+    </div>
+    <div class="principles-grid">
+      <div class="principle-card">
+        <div class="principle-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15 14.2c2.8.4 5 2.6 5 5.8"/></svg></div>
+        <h3>Consultores antes que técnicos</h3>
+        <p>Entendemos primero tu negocio: ventas, finanzas, operaciones, atención al cliente, y después lo llevamos a Zoho.</p>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon"><svg viewBox="0 0 24 24"><path d="M8 4h8v4a4 4 0 01-8 0V4z"/><path d="M8 5H5a3 3 0 003 3M16 5h3a3 3 0 01-3 3"/><path d="M12 12v4M9 20h6M10 16h4v4h-4z"/></svg></div>
+        <h3>Zoho Premium Partner</h3>
+        <p>Acreditación oficial y más de 15 años de experiencia implementando la suite Zoho en organizaciones de todos los tamaños.</p>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon"><svg viewBox="0 0 24 24"><path d="M4 21V6l8-3 8 3v15"/><path d="M4 21h16M9 21v-5h6v5M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/></svg></div>
+        <h3>Sedes en Galicia y Madrid</h3>
+        <p>Equipo propio en dos sedes, dando servicio a empresas de toda España combinando trabajo remoto y presencial.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="local-teams">
+  <div class="wrap">
+    <div class="local-grid">
+      <div class="local-text">
+        <div class="section-eyebrow">Modelo de equipo</div>
+        <h2>Equipos locales, continuidad operativa y arraigo</h2>
+        <p>En Conpas apostamos por formar equipos locales, impulsando la contratación en nuestra región y la formación continua para construir una capacidad sólida y sostenible. Es un enfoque de negocio que asegura estabilidad del equipo, continuidad del conocimiento y mejor servicio para el cliente a medio y largo plazo, y que además contribuye a fijar población al territorio mediante empleo cualificado.</p>
+        <ul class="local-benefits">
+          <li>Menos rotación, más continuidad</li>
+          <li>Menos dependencia de perfiles puntuales</li>
+          <li>Conocimiento que se queda y se consolida</li>
+          <li>Mayor predictibilidad en plazos y calidad</li>
+          <li>Impacto territorial: empleo cualificado para fijar población en la región</li>
+        </ul>
+      </div>
+      <div class="local-keys">
+        <h3 class="local-keys-title">Claves que transmite</h3>
+        <div class="local-key-card">
+          <p>Capacidad real y escalable para proyectos con recorrido (no "equipo de paso").</p>
+        </div>
+        <div class="local-key-card">
+          <p>Reducción de riesgo operativo (el know-how permanece en el equipo).</p>
+        </div>
+        <div class="local-key-card">
+          <p>Fiabilidad y continuidad en soporte, evolución y roadmap.</p>
+        </div>
+        <div class="local-key-card">
+          <p>Compromiso doble: resultados sostenibles para el cliente + arraigo que fija población al territorio.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<Footer />
+
+<style>
+  .empresa-about{padding-top:88px;}
+
+  .local-teams{
+    background:linear-gradient(180deg,var(--blue) 0%, var(--blue-deep) 100%);
+    color:#fff;
+    padding:96px 0;
+  }
+  .local-teams .section-eyebrow{color:#fff;}
+  .local-teams .section-eyebrow::before{
+    background-color:#fff;background-origin:content-box;border-radius:4px;padding:3px;
+    box-shadow:0 2px 6px -2px rgba(0,0,0,0.35);
+  }
+  .local-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:52px;align-items:start;}
+  .local-text h2{color:#fff;font-size:29px;margin:0 0 16px;line-height:1.3;}
+  .local-text > p{color:rgba(255,255,255,0.88);font-size:15.5px;line-height:1.7;margin:0 0 26px;max-width:560px;}
+  .local-benefits{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px;}
+  .local-benefits li{position:relative;padding-left:30px;font-size:14.5px;font-weight:600;line-height:1.5;}
+  .local-benefits li::before{
+    content:"✓";position:absolute;left:0;top:-1px;width:20px;height:20px;border-radius:50%;
+    background:rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;line-height:20px;text-align:center;
+  }
+  .local-keys-title{
+    color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;margin:0 0 16px;opacity:.85;
+  }
+  .local-key-card{
+    background:#fff;border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;
+    box-shadow:0 16px 32px -20px rgba(10,15,30,0.4);
+  }
+  .local-key-card:last-child{margin-bottom:0;}
+  .local-key-card p{margin:0;font-size:13.8px;line-height:1.6;color:var(--ink);font-weight:600;}
+
+  @media (max-width:880px){
+    .empresa-about{padding-top:56px;}
+    .local-grid{grid-template-columns:1fr;gap:36px;}
+  }
+</style>
+</Layout>
