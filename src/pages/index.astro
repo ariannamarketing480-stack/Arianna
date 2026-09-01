@@ -1326,13 +1326,30 @@ function initCarousel(cfg){
   });
   carousel.addEventListener('mouseleave', function(){ pauseThenResume(600); });
 
+  // custom eased scroll (slower and more natural than the browser's default "smooth" timing)
+  function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+  function smoothScrollBy(delta, duration){
+    var start = track.scrollLeft;
+    var startTime = null;
+    function step(ts){
+      if(startTime === null) startTime = ts;
+      var progress = Math.min((ts - startTime)/duration, 1);
+      track.scrollLeft = start + delta * easeInOutCubic(progress);
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function goTo(delta){
+    if(cfg.slowScroll){ smoothScrollBy(delta, cfg.scrollDuration || 650); }
+    else { track.scrollBy({left: delta, behavior:'smooth'}); }
+  }
   document.getElementById(cfg.nextId).addEventListener('click', function(){
     pauseThenResume(3200);
-    track.scrollBy({left: pageWidth(), behavior:'smooth'});
+    goTo(pageWidth());
   });
   document.getElementById(cfg.prevId).addEventListener('click', function(){
     pauseThenResume(3200);
-    track.scrollBy({left: -pageWidth(), behavior:'smooth'});
+    goTo(-pageWidth());
   });
 
   // manual drag support
@@ -1349,7 +1366,7 @@ function initCarousel(cfg){
 }
 
 initCarousel({trackId:'appsTrack', dotsId:'appsDots', carouselSel:'.apps-carousel:not(.cases-carousel)', nextId:'appsNext', prevId:'appsPrev'});
-initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-carousel', nextId:'casesNext', prevId:'casesPrev', perView:3, autoplay:false, scrollByCard:true});
+initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-carousel', nextId:'casesNext', prevId:'casesPrev', perView:3, autoplay:false, scrollByCard:true, slowScroll:true, scrollDuration:650});
 
 (function(){
   var cdVisual = document.querySelector('.cd-visual');
