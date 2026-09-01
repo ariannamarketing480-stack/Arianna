@@ -327,9 +327,9 @@
   .apps-track{display:flex;gap:16px;overflow-x:auto;scroll-behavior:auto;padding-bottom:6px;-ms-overflow-style:none;scrollbar-width:none;cursor:grab;}
   .apps-track::-webkit-scrollbar{display:none;}
   .apps-track.is-dragging{cursor:grabbing;}
-  .apps-carousel::before,.apps-carousel::after{content:"";position:absolute;top:0;bottom:6px;width:56px;z-index:2;pointer-events:none;}
-  .apps-carousel::before{left:0;background:linear-gradient(90deg,var(--paper),rgba(255,255,255,0));}
-  .apps-carousel::after{right:0;background:linear-gradient(-90deg,var(--paper),rgba(255,255,255,0));}
+  .apps-carousel::before,.apps-carousel::after{content:"";position:absolute;top:0;bottom:6px;width:26px;z-index:2;pointer-events:none;}
+  .apps-carousel::before{left:0;background:linear-gradient(90deg,var(--paper) 0%,rgba(255,255,255,0.85) 40%,rgba(255,255,255,0) 100%);}
+  .apps-carousel::after{right:0;background:linear-gradient(-90deg,var(--paper) 0%,rgba(255,255,255,0.85) 40%,rgba(255,255,255,0) 100%);}
   .app-card{flex:0 0 calc(19% - 12px);border:1px solid var(--line);border-radius:var(--radius);padding:0;background:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden;}
   .card-color{position:relative;background:var(--c);padding:13px 16px 44px;clip-path:polygon(0% 0%, 100% 0%, 100% 88%, 50% 94%, 0% 88%);}
   .card-color h4{margin:0 0 3px;font-size:13px;font-family:'Sora',sans-serif;color:#fff;}
@@ -347,8 +347,8 @@
   .apps-dots{display:flex;align-items:center;gap:6px;margin:0 8px;}
   .apps-dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .2s;}
   .apps-dot.active{background:var(--magenta);}
-  .cases-carousel::before{background:linear-gradient(90deg,var(--blue),rgba(50,92,169,0));}
-  .cases-carousel::after{background:linear-gradient(-90deg,var(--blue-deep),rgba(50,92,169,0));}
+  .cases-carousel::before{background:linear-gradient(90deg,var(--blue) 0%,rgba(50,92,169,0.85) 40%,rgba(50,92,169,0) 100%);}
+  .cases-carousel::after{background:linear-gradient(-90deg,var(--blue-deep) 0%,rgba(50,92,169,0.85) 40%,rgba(50,92,169,0) 100%);}
   .cases-carousel .apps-dot{background:rgba(255,255,255,0.4);}
   .cases-carousel .apps-dot.active{background:var(--magenta);}
   @media (max-width:880px){ .app-card{flex-basis:78%;} }
