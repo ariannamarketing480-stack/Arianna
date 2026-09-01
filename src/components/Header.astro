@@ -207,7 +207,7 @@ const EMPRESA_MENU = [
   </div>
   <nav>
     <div class="nav-item">
-      <a href="/empresa">Empresa</a>
+      <a href="#">Empresa</a>
       <div class="mega-menu">
         {EMPRESA_MENU.map((col) => (
           <div class="mega-col">
@@ -215,7 +215,7 @@ const EMPRESA_MENU = [
               <>
                 <div class="mega-col-title">{group.title}</div>
                 {group.items.map((item, i) => (
-                  <a class="mega-link" href="#">
+                  <a class="mega-link" href={item.name === '¿Quiénes somos?' ? '/empresa' : '#'}>
                     <span
                       class="mega-icon c-blue"
                       set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${MEGA_ICON[item.icon]}</svg>`}
