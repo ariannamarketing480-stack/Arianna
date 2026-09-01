@@ -186,7 +186,11 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   .local-teams{
     background:linear-gradient(180deg,var(--blue) 0%, var(--blue-deep) 100%);
     color:#fff;
-    padding:96px 0;
+    padding:122px 0 76px;
+    position:relative;
+    margin-top:-50px;
+    overflow:hidden;
+    clip-path: polygon(0% 0px, 100% 50px, 100% 100%, 0% 100%);
   }
   .local-teams .section-eyebrow{color:#fff;}
   .local-teams .section-eyebrow::before{
