@@ -794,7 +794,7 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
         <svg class="why-edge-confetti why-confetti" style="top:47.5%;right:max(calc(100% + 35px), calc(100% + 50vw - 598px));transform:translateY(-50%) rotate(-7deg);animation-delay:3.4s, 4.0s;" width="15" height="31" viewBox="-40 -82 80 164" xmlns="http://www.w3.org/2000/svg"><polygon points="0,-78 37,-2 0,78 -37,0" fill="var(--blue)"/></svg>
         <svg class="why-edge-confetti why-confetti" style="top:47.5%;right:calc(100% + 22px);transform:translateY(-50%) rotate(9deg);animation-delay:3.8s, 4.4s;" width="8" height="33" viewBox="-33 -137 66 274" xmlns="http://www.w3.org/2000/svg"><polygon points="30.5,-134 30.5,134 -30.5,87 -30.5,-83" fill="var(--magenta)"/></svg>
         <svg class="why-flow-svg" viewBox="0 0 900 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <polyline points="30,173 198,102 366,173 534,102 702,173 870,102 900,173" fill="none" stroke="rgba(20,22,27,0.16)" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
+          <polyline points="0,173 30,173 198,102 366,173 534,102 702,173 870,102 900,173" fill="none" stroke="rgba(20,22,27,0.16)" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"/>
 
           <g transform="translate(75,154) rotate(-15) scale(0.22)"><g class="why-confetti" style="animation-delay:4.2s, 4.8s;"><polygon points="-49.5,43 49.5,-46 21.5,46" fill="var(--green)"/></g></g>
           <g transform="translate(321,154) rotate(8) scale(0.16)"><g class="why-confetti" style="animation-delay:4.6s, 5.2s;"><polygon points="0,-78 37,-2 0,78 -37,0" fill="var(--blue)"/></g></g>
@@ -1384,6 +1384,21 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
     wrap.querySelectorAll('.why-tooltip.open').forEach(function(t){ t.classList.remove('open'); });
     wrap.querySelectorAll('.why-label.active').forEach(function(l){ l.classList.remove('active'); });
   });
+
+  // replay the line/tooltips/confetti reveal every time the graphic scrolls into view,
+  // from either direction — restart each CSS animation via the "set to none, reflow, clear" trick.
+  var whyAnimEls = wrap.querySelectorAll('.why-flow-svg, .why-line-edge, .why-confetti, .why-point');
+  function replayWhyAnimation(){
+    whyAnimEls.forEach(function(el){ el.style.animation = 'none'; });
+    void wrap.offsetWidth;
+    whyAnimEls.forEach(function(el){ el.style.animation = ''; });
+  }
+  var whyIo = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting) replayWhyAnimation();
+    });
+  }, {threshold: 0.3});
+  whyIo.observe(wrap);
 })();
 
 (function(){
