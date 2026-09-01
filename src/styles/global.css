@@ -349,6 +349,19 @@
   .apps-dot.active{background:var(--magenta);}
   .cases-carousel .apps-dot{background:rgba(255,255,255,0.4);}
   .cases-carousel .apps-dot.active{background:var(--magenta);}
+  .cases-carousel .apps-track{mask-image:none;-webkit-mask-image:none;}
+  .apps-arrow-circle{
+    position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+    width:40px;height:40px;border-radius:50%;
+    background:#fff;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;box-shadow:0 8px 20px -8px rgba(10,15,30,0.5);
+    transition:box-shadow .2s ease, transform .2s ease;
+  }
+  .apps-arrow-circle:hover{box-shadow:0 10px 24px -6px rgba(10,15,30,0.6);transform:translateY(-50%) scale(1.06);}
+  .apps-arrow-circle svg{width:18px;height:18px;}
+  .apps-arrow-circle.prev{left:-20px;}
+  .apps-arrow-circle.next{right:-20px;}
   @media (max-width:880px){ .app-card{flex-basis:78%;} }
 
   /* ---- zoho one mini banner (support block nested inside Apps Zoho, not a standalone section) ---- */
