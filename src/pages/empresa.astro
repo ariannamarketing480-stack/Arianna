@@ -2,6 +2,94 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
+// deterministic PRNG so the confetti layout stays stable across rebuilds
+function mulberry32(seed) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const CONFETTI_SHAPES = ['shape-tri1', 'shape-tri2', 'shape-para', 'shape-rhombus'];
+const CONFETTI_COLORS = ['c-green', 'c-magenta', 'c-blue'];
+
+// same generator + palette as the home page, so the newsletter section reads identically here.
+function makeConfettiGrid(seed, cols, rows, textZone, opts = {}) {
+  const {
+    skipProb = 0.12,
+    longRatio = 0.16,
+    colStart = -6,
+    colEnd = 106,
+    rowStart = -8,
+    rowEnd = 108,
+  } = opts;
+  const rand = mulberry32(seed);
+  const cellW = (colEnd - colStart) / cols;
+  const cellH = (rowEnd - rowStart) / rows;
+  const pieces = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (rand() < skipProb) continue;
+
+      const cellLeft = colStart + c * cellW;
+      const cellTop = rowStart + r * cellH;
+      const left = Math.round(cellLeft + cellW / 2 + (rand() - 0.5) * cellW * 0.65);
+      const top = Math.round(cellTop + cellH / 2 + (rand() - 0.5) * cellH * 0.65);
+
+      const isLong = rand() < longRatio;
+      const shape = isLong
+        ? 'shape-para'
+        : CONFETTI_SHAPES[Math.floor(rand() * CONFETTI_SHAPES.length)];
+      const color = CONFETTI_COLORS[Math.floor(rand() * CONFETTI_COLORS.length)];
+      const rot = Math.round(rand() * 70 - 35);
+
+      let w, h;
+      if (isLong) {
+        w = Math.round(34 + rand() * 24);
+        h = Math.round(240 + rand() * 220);
+      } else if (shape === 'shape-rhombus') {
+        w = Math.round(34 + rand() * 22);
+        h = Math.round(w * (2.0 + rand() * 0.9));
+      } else if (shape === 'shape-para') {
+        w = Math.round(36 + rand() * 26);
+        h = Math.round(w * (1.7 + rand() * 0.7));
+      } else {
+        w = Math.round(48 + rand() * 46);
+        h = Math.round(58 + rand() * 70);
+      }
+
+      const heightPct = (h / 1250) * 100;
+      const verticalOverlap = top <= textZone.y1 && top + heightPct >= textZone.y0;
+      const inTextZone = textZone && left >= textZone.x0 && left <= textZone.x1 && verticalOverlap;
+      const opacity = inTextZone ? 0.14 : 1;
+
+      pieces.push({ color, shape, left, top, w, h, rot, opacity });
+    }
+  }
+  return pieces;
+}
+
+// newsletter section: same confetti system as the home page, transparent overall (not just
+// behind the text), since it's a small, dark, understated closing bar.
+const NEWSLETTER_HEIGHT_PX = 240;
+const NEWSLETTER_TEXT_ZONE = { x0: 0, x1: 45, y0: 30, y1: 80 };
+const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
+  skipProb: 0.25,
+  longRatio: 0.12,
+}).map((p) => {
+  const heightPct = (p.h / NEWSLETTER_HEIGHT_PX) * 100;
+  const inZone =
+    p.left >= NEWSLETTER_TEXT_ZONE.x0 &&
+    p.left <= NEWSLETTER_TEXT_ZONE.x1 &&
+    p.top <= NEWSLETTER_TEXT_ZONE.y1 &&
+    p.top + heightPct >= NEWSLETTER_TEXT_ZONE.y0;
+  return { ...p, opacity: inZone ? 0.1 : 0.5 };
+});
 ---
 
 <Layout title="CONPAS · Empresa">
@@ -65,6 +153,27 @@ import Footer from '../components/Footer.astro';
           <p>Compromiso doble: resultados sostenibles para el cliente + arraigo que fija población al territorio.</p>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="newsletter">
+  <div class="confetti-bg" aria-hidden="true">
+    {newsletterConfetti.map((p) => (
+      <span
+        class={`confetti ${p.color} ${p.shape}`}
+        style={`left:${p.left}%; top:${p.top}%; width:${p.w}px; height:${p.h}px; transform:rotate(${p.rot}deg) translateZ(0); opacity:${p.opacity};`}
+      />
+    ))}
+  </div>
+  <div class="wrap nl-row">
+    <div>
+      <h3>Suscríbete a nuestra newsletter</h3>
+      <p>Te mantenemos informado de todas las novedades de Zoho.</p>
+    </div>
+    <div class="nl-form">
+      <input type="email" placeholder="Tu email">
+      <button>Suscribirse</button>
     </div>
   </div>
 </section>
