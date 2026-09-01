@@ -350,6 +350,7 @@
   .cases-carousel::before{background:linear-gradient(90deg,var(--blue),rgba(50,92,169,0));}
   .cases-carousel::after{background:linear-gradient(-90deg,var(--blue-deep),rgba(50,92,169,0));}
   .cases-carousel .apps-dot{background:rgba(255,255,255,0.4);}
+  .cases-carousel .apps-dot.active{background:var(--magenta);}
   @media (max-width:880px){ .app-card{flex-basis:78%;} }
 
   /* ---- zoho one mini banner (support block nested inside Apps Zoho, not a standalone section) ---- */
