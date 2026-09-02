@@ -124,6 +124,23 @@
   /* hero */
   .hero{position:relative;overflow:hidden;padding:76px 0 60px;min-height:640px;display:flex;align-items:center;}
   .hero > .wrap{width:100%;}
+  /* the hero no longer uses the old static shared confetti background — those pieces are
+     hidden here (kept for .featured3, which still shares the same generated layer) and
+     replaced by this section's own always-drifting ambient pieces + the N-assembly graphic. */
+  .confetti-hero{display:none;}
+  .hero-ambient{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .confetti-drift{opacity:0;animation-name:ambientIn, confettiDrift;animation-duration:.8s, 7s;
+    animation-timing-function:ease, ease-in-out;animation-iteration-count:1, infinite;
+    animation-fill-mode:forwards, none;
+  }
+  @keyframes ambientIn{ from{opacity:0;} to{opacity:.55;} }
+  @keyframes confettiDrift{
+    0%,100%{translate:0 0;}
+    25%{translate:14px -18px;}
+    50%{translate:-10px 10px;}
+    75%{translate:8px 16px;}
+  }
+  @media (prefers-reduced-motion: reduce){ .confetti-drift{animation:none;opacity:.55;} }
   .hero-center{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1;}
   .hero-copy-block{animation:heroCopyFade 7s ease-in-out forwards;}
   .hero-center .eyebrow{margin-left:auto;margin-right:auto;}
