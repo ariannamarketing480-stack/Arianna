@@ -212,26 +212,28 @@
     transform:translate(-50%,-50%);
   }
   .n-frag-outer{transform-box:fill-box;transform-origin:center;opacity:0;transform:var(--scatter);
-    animation:nFragAssemble 7s ease-in-out forwards;
+    animation:nFragAssemble 7.5s ease-in-out forwards;
     animation-delay:var(--stagger, 0s);
   }
   .n-frag-inner{transform-box:fill-box;transform-origin:center;
     animation-name:nFragDrift;animation-timing-function:ease-in-out;animation-fill-mode:forwards;
   }
+  /* floats in place 0%-53.3% (~4s, half a second longer than the plain scatter-hold used to
+     last) before converging into the N between 53.3%-73.9%, then holds assembled. */
   @keyframes nFragAssemble{
     0%{opacity:0; transform:var(--scatter);}
-    5%{opacity:1;}
-    50%{transform:var(--scatter);}
-    72%{transform:none;}
+    4.7%{opacity:1;}
+    53.3%{transform:var(--scatter);}
+    73.9%{transform:none;}
     100%{opacity:1; transform:none;}
   }
   /* one-time float wiggle that settles to a dead stop (0,0) — not an infinite loop, so once
      the piece is part of the assembled N it truly stays "fija" as requested, no residual jitter. */
   @keyframes nFragDrift{
     0%{transform:translate(0,0);}
-    25%{transform:translate(3px,-4px);}
-    50%{transform:translate(-3px,3px);}
-    75%{transform:translate(2px,4px);}
+    25%{transform:translate(9px,-11px);}
+    50%{transform:translate(-10px,8px);}
+    75%{transform:translate(7px,10px);}
     100%{transform:translate(0,0);}
   }
   @media (prefers-reduced-motion: reduce){
