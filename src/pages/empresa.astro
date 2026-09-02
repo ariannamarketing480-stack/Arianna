@@ -343,7 +343,15 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
      "Modelo de equipo") — flex+space-between could shrink columns unevenly depending on content. */
   .tray-row{display:grid;grid-template-columns:repeat(5, 1fr);gap:22px;margin-top:-22px;position:relative;z-index:1;}
   .tray-point{display:flex;flex-direction:column;align-items:center;min-width:0;opacity:0;
-    animation-name:whyPointIn;animation-duration:.5s;animation-timing-function:ease;animation-fill-mode:forwards;
+    animation-name:trayPointIn;animation-duration:.5s;animation-timing-function:ease;animation-fill-mode:forwards;
+  }
+  /* NOT whyPointIn: that keyframe includes translateX(-50%), needed to self-center an
+     absolutely-positioned .why-point but wrong here — .tray-point is a normal grid column,
+     and that permanent -50% shift was pushing every card half its own width to the left
+     once the entrance animation finished. */
+  @keyframes trayPointIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
   }
   .tray-dot{width:12px;height:12px;border-radius:50%;background:rgba(20,22,27,0.55);flex:none;}
   .tray-stem{width:1px;height:36px;background:rgba(20,22,27,0.16);}
