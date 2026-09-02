@@ -142,19 +142,11 @@
   }
   @media (prefers-reduced-motion: reduce){ .confetti-drift{animation:none;opacity:.55;} }
   .hero-center{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1;}
-  .hero-copy-block{animation:heroCopyFade 9s ease-in-out infinite;}
   .hero-center .eyebrow{margin-left:auto;margin-right:auto;}
   .hero-center .lede{margin-left:auto;margin-right:auto;}
   .hero-center .cta-row{justify-content:center;}
-  /* text is visible while the pieces float loose, fades out as they converge into the N,
-     stays hidden while the N holds, then fades back in as the N breaks apart again —
-     loops forever in step with .n-frag-outer's nFragCycle below. */
-  @keyframes heroCopyFade{
-    0%,30%{opacity:1;}
-    45%,70%{opacity:0;}
-    85%,100%{opacity:1;}
-  }
-  @media (prefers-reduced-motion: reduce){ .hero-copy-block{animation:none;opacity:1;} }
+  /* title stays visible the whole time now — the N assembles behind it (z-index:1 above the
+     N's z-index:0), never hiding the text. */
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     background:rgba(32,178,76,0.12);color:var(--green);
@@ -211,31 +203,36 @@
     .conpas-mark .clip-green{y:30;height:528;} .conpas-mark .clip-blue{y:126;height:363;} .conpas-mark .clip-magenta{y:60;height:522;}
   }
 
-  /* hero centerpiece: ~45 small confetti fragments float loose across the whole hero, then
-     converge into the exact N mark (same vertices as .conpas-mark above, subdivided into a
-     grid) big and centered — a beat where the logo is the only thing on screen, text hidden
-     — then it breaks apart again and the pieces go back to floating, text fading back in.
-     Loops forever, in step with .hero-copy-block's fade above. */
+  /* hero centerpiece: behind the (always-visible) title, ~45 small confetti fragments float
+     loose across the whole hero, then converge once into the exact N mark (same vertices as
+     .conpas-mark above, subdivided into a grid) big and centered, and stay put — plays once
+     on load (fill-mode:forwards, no loop), the title never hides behind it. */
   .n-assemble{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;}
   .n-assemble-inner{position:absolute;left:50%;top:50%;width:400px;height:414px;overflow:visible;
     transform:translate(-50%,-50%);
   }
   .n-frag-outer{transform-box:fill-box;transform-origin:center;opacity:0;transform:var(--scatter);
-    animation:nFragFadeIn .6s ease forwards, nFragCycle 9s ease-in-out infinite;
-    animation-delay:var(--stagger, 0s), 0s;
+    animation:nFragAssemble 7s ease-in-out forwards;
+    animation-delay:var(--stagger, 0s);
   }
-  .n-frag-inner{transform-box:fill-box;transform-origin:center;animation-name:nFragDrift;animation-timing-function:ease-in-out;animation-iteration-count:infinite;}
-  @keyframes nFragFadeIn{ from{opacity:0;} to{opacity:1;} }
-  @keyframes nFragCycle{
-    0%,30%{transform:var(--scatter);}
-    50%,65%{transform:none;}
-    85%,100%{transform:var(--scatter);}
+  .n-frag-inner{transform-box:fill-box;transform-origin:center;
+    animation-name:nFragDrift;animation-timing-function:ease-in-out;animation-fill-mode:forwards;
   }
+  @keyframes nFragAssemble{
+    0%{opacity:0; transform:var(--scatter);}
+    5%{opacity:1;}
+    50%{transform:var(--scatter);}
+    72%{transform:none;}
+    100%{opacity:1; transform:none;}
+  }
+  /* one-time float wiggle that settles to a dead stop (0,0) — not an infinite loop, so once
+     the piece is part of the assembled N it truly stays "fija" as requested, no residual jitter. */
   @keyframes nFragDrift{
-    0%,100%{transform:translate(0,0);}
+    0%{transform:translate(0,0);}
     25%{transform:translate(3px,-4px);}
     50%{transform:translate(-3px,3px);}
     75%{transform:translate(2px,4px);}
+    100%{transform:translate(0,0);}
   }
   @media (prefers-reduced-motion: reduce){
     .n-frag-outer{animation:none;opacity:1;transform:none;}
