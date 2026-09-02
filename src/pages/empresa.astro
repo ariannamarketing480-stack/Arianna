@@ -338,8 +338,11 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   /* carries the line out to the true screen edges, same technique as .why-line-edge on the home page */
   .tray-line-edge-left{right:100%;top:83.3%;animation-delay:.1s;}
   .tray-line-edge-right{left:100%;top:83.3%;animation-delay:1.6s;}
-  .tray-row{display:flex;justify-content:space-between;gap:12px;margin-top:-22px;position:relative;z-index:1;}
-  .tray-point{display:flex;flex-direction:column;align-items:center;flex:0 1 172px;min-width:0;opacity:0;
+  /* grid instead of flex: guarantees all 5 columns are the exact same width and that the row
+     spans edge-to-edge (first/last column flush with the wrap, same as the cards above it in
+     "Modelo de equipo") — flex+space-between could shrink columns unevenly depending on content. */
+  .tray-row{display:grid;grid-template-columns:repeat(5, 1fr);gap:22px;margin-top:-22px;position:relative;z-index:1;}
+  .tray-point{display:flex;flex-direction:column;align-items:center;min-width:0;opacity:0;
     animation-name:whyPointIn;animation-duration:.5s;animation-timing-function:ease;animation-fill-mode:forwards;
   }
   .tray-dot{width:12px;height:12px;border-radius:50%;background:rgba(20,22,27,0.55);flex:none;}
