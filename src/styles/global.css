@@ -141,6 +141,21 @@
     75%{translate:8px 16px;}
   }
   @media (prefers-reduced-motion: reduce){ .confetti-drift{animation:none;opacity:.55;} }
+  /* extra background decoration that only slides in once the N has fully assembled (delays
+     start ~6.6s+), from the left or right edge (--slide-from), so the hero doesn't feel empty
+     once everything else has settled. More transparent than the main ambient confetti on
+     purpose — it's meant to read as background fill, not compete with it. */
+  .hero-filler{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .confetti-filler{opacity:0;animation-name:fillerSlideIn, confettiDrift;animation-duration:1.1s, 7s;
+    animation-timing-function:cubic-bezier(.2,.8,.3,1), ease-in-out;animation-iteration-count:1, infinite;
+    animation-fill-mode:forwards, none;
+  }
+  @keyframes fillerSlideIn{
+    0%{opacity:0; transform:translateX(var(--slide-from,-160px));}
+    100%{opacity:.32; transform:translateX(0);}
+  }
+  @media (prefers-reduced-motion: reduce){ .confetti-filler{animation:none;opacity:.32;transform:none;} }
+  @media (max-width:880px){ .hero-filler{display:none;} }
   .hero-center{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1;}
   .hero-center .eyebrow{margin-left:auto;margin-right:auto;}
   .hero-center .lede{margin-left:auto;margin-right:auto;}
