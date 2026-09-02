@@ -182,16 +182,17 @@
      starts typing once the N has finished converging (nFragAssemble's last piece lands
      around 6.4s: 7.5s cycle * 73.9% + up to .9s stagger), so it reads as a beat after the
      logo settles rather than competing with it. */
-  .hero-claim{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);
+  .hero-claim{position:absolute;left:50%;bottom:72px;transform:translateX(-50%);
     margin:0;z-index:1;text-align:center;white-space:nowrap;
-    animation-name:claimType, claimCaret;
-    animation-duration:2s, .8s;
-    animation-timing-function:steps(39,end), step-end;
-    animation-delay:6.2s, 6.2s;
-    animation-iteration-count:1, 4;
-    animation-fill-mode:forwards, none;
+    font-size:20px;border-right:none;
+    animation-name:claimType;
+    animation-duration:2s;
+    animation-timing-function:steps(39,end);
+    animation-delay:6.2s;
+    animation-iteration-count:1;
+    animation-fill-mode:forwards;
   }
-  @media (prefers-reduced-motion: reduce){ .hero-claim{animation:none;width:auto;border-right:none;} }
+  @media (prefers-reduced-motion: reduce){ .hero-claim{animation:none;width:auto;} }
   @media (max-width:880px){ .hero-claim{position:static;transform:none;margin:16px 0 0;} }
   .cta-row{display:flex;gap:14px;}
 
