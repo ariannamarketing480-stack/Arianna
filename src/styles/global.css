@@ -142,14 +142,17 @@
   }
   @media (prefers-reduced-motion: reduce){ .confetti-drift{animation:none;opacity:.55;} }
   .hero-center{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1;}
-  .hero-copy-block{animation:heroCopyFade 7s ease-in-out forwards;}
+  .hero-copy-block{animation:heroCopyFade 9s ease-in-out infinite;}
   .hero-center .eyebrow{margin-left:auto;margin-right:auto;}
   .hero-center .lede{margin-left:auto;margin-right:auto;}
   .hero-center .cta-row{justify-content:center;}
+  /* text is visible while the pieces float loose, fades out as they converge into the N,
+     stays hidden while the N holds, then fades back in as the N breaks apart again —
+     loops forever in step with .n-frag-outer's nFragCycle below. */
   @keyframes heroCopyFade{
-    0%,45%{opacity:1;}
-    60%,80%{opacity:0;}
-    100%{opacity:1;}
+    0%,30%{opacity:1;}
+    45%,70%{opacity:0;}
+    85%,100%{opacity:1;}
   }
   @media (prefers-reduced-motion: reduce){ .hero-copy-block{animation:none;opacity:1;} }
   .eyebrow{
@@ -209,30 +212,24 @@
   }
 
   /* hero centerpiece: ~45 small confetti fragments float loose across the whole hero, then
-     converge once into the exact N mark (same vertices as .conpas-mark above, subdivided into
-     a grid) big and centered — a beat where the logo is the only thing on screen, text hidden
-     — then the whole mark shrinks down into a quiet corner accent as the text fades back in.
-     Plays once on load (animation-delay + fill-mode:forwards, no loop), synced to the same
-     7s timeline as .hero-copy-block's fade above. */
+     converge into the exact N mark (same vertices as .conpas-mark above, subdivided into a
+     grid) big and centered — a beat where the logo is the only thing on screen, text hidden
+     — then it breaks apart again and the pieces go back to floating, text fading back in.
+     Loops forever, in step with .hero-copy-block's fade above. */
   .n-assemble{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;}
   .n-assemble-inner{position:absolute;left:50%;top:50%;width:400px;height:414px;overflow:visible;
-    animation:nWrapSettle 7s cubic-bezier(.4,0,.2,1) forwards;
+    transform:translate(-50%,-50%);
   }
-  @keyframes nWrapSettle{
-    0%,72%{transform:translate(-50%,-50%) scale(1);}
-    100%{transform:translate(calc(-50% + 330px), -50%) scale(0.5);}
-  }
-  .n-frag-outer{transform-box:fill-box;transform-origin:center;opacity:0;
-    animation-name:nFragAssemble;animation-duration:7s;animation-timing-function:ease-in-out;
-    animation-fill-mode:forwards;animation-delay:var(--stagger, 0s);
+  .n-frag-outer{transform-box:fill-box;transform-origin:center;opacity:0;transform:var(--scatter);
+    animation:nFragFadeIn .6s ease forwards, nFragCycle 9s ease-in-out infinite;
+    animation-delay:var(--stagger, 0s), 0s;
   }
   .n-frag-inner{transform-box:fill-box;transform-origin:center;animation-name:nFragDrift;animation-timing-function:ease-in-out;animation-iteration-count:infinite;}
-  @keyframes nFragAssemble{
-    0%{opacity:0; transform:var(--scatter);}
-    5%{opacity:1;}
-    50%{transform:var(--scatter);}
-    72%{transform:none;}
-    100%{opacity:1; transform:none;}
+  @keyframes nFragFadeIn{ from{opacity:0;} to{opacity:1;} }
+  @keyframes nFragCycle{
+    0%,30%{transform:var(--scatter);}
+    50%,65%{transform:none;}
+    85%,100%{transform:var(--scatter);}
   }
   @keyframes nFragDrift{
     0%,100%{transform:translate(0,0);}
@@ -241,7 +238,6 @@
     75%{transform:translate(2px,4px);}
   }
   @media (prefers-reduced-motion: reduce){
-    .n-assemble-inner{animation:none;transform:translate(calc(-50% + 330px), -50%) scale(0.5);}
     .n-frag-outer{animation:none;opacity:1;transform:none;}
     .n-frag-inner{animation:none;}
   }
