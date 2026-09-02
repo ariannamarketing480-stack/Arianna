@@ -178,6 +178,21 @@
   @keyframes claimType{ from{width:0;} to{width:40ch;} }
   @keyframes claimCaret{ 50%{border-color:transparent;} }
   @media (prefers-reduced-motion: reduce){ .claim{animation:none;width:auto;border-right:none;} }
+  /* the hero's own claim sits below the assembled N, not inline with the title — it only
+     starts typing once the N has finished converging (nFragAssemble's last piece lands
+     around 6.4s: 7.5s cycle * 73.9% + up to .9s stagger), so it reads as a beat after the
+     logo settles rather than competing with it. */
+  .hero-claim{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);
+    margin:0;z-index:1;text-align:center;white-space:nowrap;
+    animation-name:claimType, claimCaret;
+    animation-duration:2s, .8s;
+    animation-timing-function:steps(39,end), step-end;
+    animation-delay:6.2s, 6.2s;
+    animation-iteration-count:1, 4;
+    animation-fill-mode:forwards, none;
+  }
+  @media (prefers-reduced-motion: reduce){ .hero-claim{animation:none;width:auto;border-right:none;} }
+  @media (max-width:880px){ .hero-claim{position:static;transform:none;margin:16px 0 0;} }
   .cta-row{display:flex;gap:14px;}
 
   .hero-stats{padding:0 0 48px;position:relative;}
