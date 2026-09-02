@@ -122,8 +122,19 @@
   .mobile-nav a.btn{border-bottom:none;text-align:center;}
 
   /* hero */
-  .hero{position:relative;overflow:hidden;padding:76px 0 60px;}
-  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;position:relative;z-index:1;}
+  .hero{position:relative;overflow:hidden;padding:76px 0 60px;min-height:640px;display:flex;align-items:center;}
+  .hero > .wrap{width:100%;}
+  .hero-center{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1;}
+  .hero-copy-block{animation:heroCopyFade 7s ease-in-out forwards;}
+  .hero-center .eyebrow{margin-left:auto;margin-right:auto;}
+  .hero-center .lede{margin-left:auto;margin-right:auto;}
+  .hero-center .cta-row{justify-content:center;}
+  @keyframes heroCopyFade{
+    0%,45%{opacity:1;}
+    60%,80%{opacity:0;}
+    100%{opacity:1;}
+  }
+  @media (prefers-reduced-motion: reduce){ .hero-copy-block{animation:none;opacity:1;} }
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;
     background:rgba(32,178,76,0.12);color:var(--green);
@@ -142,9 +153,10 @@
   @media (prefers-reduced-motion: reduce){ .claim{animation:none;width:auto;border-right:none;} }
   .cta-row{display:flex;gap:14px;}
 
+  .hero-stats{padding:0 0 48px;position:relative;}
   .stat-card{
     background:#fff;border-radius:var(--radius);box-shadow:0 24px 60px -20px rgba(20,30,60,0.18);
-    padding:32px;position:relative;z-index:1;
+    padding:32px;position:relative;z-index:1;max-width:560px;margin:0 auto;
   }
   .partner-row{
     display:flex;align-items:stretch;gap:10px;margin-bottom:16px;
@@ -179,20 +191,30 @@
     .conpas-mark .clip-green{y:30;height:528;} .conpas-mark .clip-blue{y:126;height:363;} .conpas-mark .clip-magenta{y:60;height:522;}
   }
 
-  /* hero centerpiece: ~45 small confetti fragments float loose around the whole hero, then
+  /* hero centerpiece: ~45 small confetti fragments float loose across the whole hero, then
      converge once into the exact N mark (same vertices as .conpas-mark above, subdivided into
-     a grid) and settle — plays once on load, same animation-delay + fill-mode:forwards
-     technique as the rest of the site's reveals (not an infinite loop). */
+     a grid) big and centered — a beat where the logo is the only thing on screen, text hidden
+     — then the whole mark shrinks down into a quiet corner accent as the text fades back in.
+     Plays once on load (animation-delay + fill-mode:forwards, no loop), synced to the same
+     7s timeline as .hero-copy-block's fade above. */
   .n-assemble{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;}
-  .n-assemble-inner{position:absolute;right:2%;top:50%;width:260px;height:270px;transform:translateY(-50%);overflow:visible;}
+  .n-assemble-inner{position:absolute;left:50%;top:50%;width:400px;height:414px;overflow:visible;
+    animation:nWrapSettle 7s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes nWrapSettle{
+    0%,72%{transform:translate(-50%,-50%) scale(1);}
+    100%{transform:translate(calc(-50% + 330px), -50%) scale(0.5);}
+  }
   .n-frag-outer{transform-box:fill-box;transform-origin:center;opacity:0;
-    animation-name:nFragAssemble;animation-duration:1s;animation-timing-function:ease-in-out;
-    animation-fill-mode:forwards;animation-delay:calc(2.6s + var(--stagger, 0s));
+    animation-name:nFragAssemble;animation-duration:7s;animation-timing-function:ease-in-out;
+    animation-fill-mode:forwards;animation-delay:var(--stagger, 0s);
   }
   .n-frag-inner{transform-box:fill-box;transform-origin:center;animation-name:nFragDrift;animation-timing-function:ease-in-out;animation-iteration-count:infinite;}
   @keyframes nFragAssemble{
     0%{opacity:0; transform:var(--scatter);}
-    12%{opacity:1;}
+    5%{opacity:1;}
+    50%{transform:var(--scatter);}
+    72%{transform:none;}
     100%{opacity:1; transform:none;}
   }
   @keyframes nFragDrift{
@@ -202,10 +224,11 @@
     75%{transform:translate(2px,4px);}
   }
   @media (prefers-reduced-motion: reduce){
+    .n-assemble-inner{animation:none;transform:translate(calc(-50% + 330px), -50%) scale(0.5);}
     .n-frag-outer{animation:none;opacity:1;transform:none;}
     .n-frag-inner{animation:none;}
   }
-  @media (max-width:1300px){ .n-assemble-inner{width:190px;height:198px;right:0;} }
+  @media (max-width:1300px){ .n-assemble-inner{width:300px;height:311px;} }
   @media (max-width:880px){ .n-assemble{display:none;} }
   .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .stat-box{border-radius:var(--radius);padding:18px;}
@@ -654,7 +677,6 @@
   .foot-legal .sep{opacity:.4;}
 
   @media (max-width:880px){
-    .hero-grid{grid-template-columns:1fr;}
     .service-grid{grid-template-columns:repeat(2,1fr);}
     .f3-grid,.apps-grid,.t-grid{grid-template-columns:repeat(2,1fr);}
     .case-card{flex-basis:44%;}
