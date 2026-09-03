@@ -268,7 +268,9 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   .map-frame-wrap{position:relative;}
   .map-card iframe{width:100%;height:260px;border:0;display:block;}
   .map-recenter{
-    position:absolute;bottom:12px;right:12px;width:36px;height:36px;border-radius:50%;
+    /* Google's own zoom +/- control sits at the bottom-right of the embed (~44px wide) — offset
+       further right clears it instead of stacking on top, so both controls sit side by side. */
+    position:absolute;bottom:12px;right:60px;width:36px;height:36px;border-radius:50%;
     background:#fff;border:1px solid var(--line);box-shadow:0 6px 16px -6px rgba(20,30,60,0.35);
     display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
     transition:transform .15s ease, box-shadow .15s ease;
