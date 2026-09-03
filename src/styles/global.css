@@ -232,27 +232,17 @@
   .partner-box{
     display:flex;align-items:center;gap:10px;background:var(--mist);border-radius:var(--radius);padding:14px;flex:1;min-width:0;
   }
-  .partner-conpas{justify-content:center;}
+  .partner-years{flex-direction:column;justify-content:center;gap:2px;text-align:center;}
   .zoho-mark{width:92px;height:44px;border-radius:10px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:5px 8px;box-sizing:border-box;flex:none;}
   .zoho-mark img{width:100%;height:100%;object-fit:contain;display:block;}
   .partner-text{font-weight:800;font-size:13.5px;line-height:1.2;white-space:nowrap;}
   .partner-text span{display:block;font-weight:800;color:var(--blue);}
-  .conpas-mark{width:52px;height:54px;flex:none;overflow:visible;}
-  .conpas-mark polygon{opacity:1;}
-  /* used to reveal each color via a CSS @keyframes animation of the clip-path rect's own y/height
-     (SVG geometry properties driven as CSS). That animation reports playState:"running" via the
-     Web Animations API but never actually changes the computed height/y here — a real browser
-     gap in animating SVG presentation-attribute geometry through @keyframes — so the badge
-     rendered permanently empty (clipped to height:0) instead of just at a bad random frame.
-     Setting the rects to their fully-grown values directly sidesteps the broken animation. */
-  .conpas-mark .clip-green{y:30px;height:528px;}
-  .conpas-mark .clip-blue{y:126px;height:363px;}
-  .conpas-mark .clip-magenta{y:60px;height:522px;}
 
   /* hero centerpiece: behind the (always-visible) title, ~45 small confetti fragments float
      loose across the whole hero, then converge once into the exact N mark (same vertices as
-     .conpas-mark above, subdivided into a grid) big and centered, and stay put — plays once
-     on load (fill-mode:forwards, no loop), the title never hides behind it. */
+     the N logo's green/blue/magenta polygons: 25,30 144.5,126 445.5,365 565,60 etc., subdivided
+     into a grid) big and centered, and stay put — plays once on load (fill-mode:forwards, no
+     loop), the title never hides behind it. */
   .n-assemble{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;}
   .n-assemble-inner{position:absolute;left:50%;top:calc(50% - 38px);width:400px;height:414px;overflow:visible;
     transform:translate(-50%,-50%);
@@ -298,7 +288,7 @@
   .stat-box{border-radius:var(--radius);padding:18px;}
   .stat-box.b1{background:rgba(51,92,170,0.09);}
   .stat-box.b2{background:rgba(32,178,76,0.10);}
-  .stat-box.b3{background:rgba(189,32,88,0.10);grid-column:1 / -1;}
+  .stat-box.b3{background:rgba(189,32,88,0.10);}
   .stat-num{font-size:28px;font-weight:800;font-family:'Sora',sans-serif;}
   .stat-num.blue{color:var(--blue);} .stat-num.green{color:var(--green);} .stat-num.magenta{color:var(--magenta);}
   .stat-label{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
