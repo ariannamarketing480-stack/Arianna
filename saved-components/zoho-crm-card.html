@@ -1,0 +1,50 @@
+<!--
+  Tarjeta animada "Zoho CRM" — guardada el 2026-09-03 al sacarla de la sección
+  "Partner Zoho España" (src/pages/index.astro, dentro de .trust-grid), donde
+  fue sustituida por el stat-card (Premium Partner + +15/2/40+) que antes
+  vivía en su propia .hero-stats.
+
+  Para reutilizarla: pegar el <svg> tal cual donde haga falta. Las animaciones
+  (barras rebotando, donut girando, check de certificación dibujándose) están
+  en src/styles/global.css, bajo "---- trust / partner ----", en las reglas
+  .trust-illustration .bar / .donut-group / .cert-badge / .cert-check y sus
+  @keyframes (barBounce, donutSpin, badgePop, checkDraw) — se dejaron ahí sin
+  tocar porque no estorban aunque el <svg> no esté en la página.
+-->
+<svg class="trust-illustration" viewBox="0 0 440 340" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="24" width="410" height="290" rx="26" fill="#F5F6FA"/>
+  <rect x="52" y="54" width="300" height="216" rx="18" fill="#14161B" opacity="0.06"/>
+  <rect x="44" y="46" width="300" height="216" rx="18" fill="#FFFFFF" stroke="#E5E7EF" stroke-width="1.5"/>
+  <line x1="44" y1="82" x2="344" y2="82" stroke="#E5E7EF" stroke-width="1.5"/>
+  <circle cx="64" cy="64" r="5" fill="var(--magenta)"/>
+  <circle cx="80" cy="64" r="5" fill="var(--magenta)"/>
+  <circle cx="96" cy="64" r="5" fill="var(--magenta)"/>
+  <text x="112" y="68" font-family="Manrope, sans-serif" font-weight="800" font-size="13" fill="#14161B">Zoho CRM</text>
+
+  <text x="58" y="102" font-family="Inter, sans-serif" font-size="9" fill="#8A8F9C">Ventas mensuales</text>
+  <rect class="bar bar1" x="66" y="188" width="18" height="48" rx="4" fill="var(--blue)" opacity="0.85"/>
+  <rect class="bar bar2" x="94" y="164" width="18" height="72" rx="4" fill="var(--blue)" opacity="0.65"/>
+  <rect class="bar bar3" x="122" y="200" width="18" height="36" rx="4" fill="var(--blue)" opacity="0.7"/>
+  <rect class="bar bar4" x="150" y="150" width="18" height="86" rx="4" fill="var(--blue)" opacity="0.5"/>
+  <line x1="58" y1="236" x2="176" y2="236" stroke="#E5E7EF" stroke-width="1.5"/>
+
+  <text x="200" y="98" font-family="Inter, sans-serif" font-size="9" fill="#8A8F9C">Rendimiento</text>
+  <path d="M198 116 L204 106 L210 116 Z" fill="var(--magenta)"/>
+  <text x="214" y="118" font-family="Manrope, sans-serif" font-weight="800" font-size="15" fill="var(--green)">+24%</text>
+
+  <g class="donut-group">
+    <circle cx="266" cy="176" r="46" fill="none" stroke="#EEF0F5" stroke-width="14"/>
+    <circle cx="266" cy="176" r="46" fill="none" stroke="var(--blue)" stroke-width="14" stroke-dasharray="130 300" stroke-linecap="round" transform="rotate(-90 266 176)" opacity="0.85"/>
+    <circle cx="266" cy="176" r="46" fill="none" stroke="var(--blue)" stroke-width="14" stroke-dasharray="70 300" stroke-dashoffset="-130" stroke-linecap="round" transform="rotate(-90 266 176)" opacity="0.55"/>
+    <circle cx="266" cy="176" r="46" fill="none" stroke="var(--blue)" stroke-width="14" stroke-dasharray="45 300" stroke-dashoffset="-200" stroke-linecap="round" transform="rotate(-90 266 176)" opacity="0.3"/>
+  </g>
+  <text x="266" y="173" text-anchor="middle" font-family="Manrope, sans-serif" font-weight="800" font-size="15" fill="#14161B">76%</text>
+  <text x="266" y="187" text-anchor="middle" font-family="Inter, sans-serif" font-size="7.5" fill="#8A8F9C">activos</text>
+
+  <g class="cert-badge">
+    <circle cx="338" cy="240" r="32" fill="var(--green)"/>
+    <circle cx="338" cy="240" r="32" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.85"/>
+    <circle cx="338" cy="240" r="36.5" fill="none" stroke="var(--green)" stroke-width="1" opacity="0.35"/>
+    <path class="cert-check" d="M324 240 L334 250 L353 229" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
