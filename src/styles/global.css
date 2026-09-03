@@ -138,9 +138,12 @@
   }
   .hero > .wrap{width:100%;}
   /* the hero no longer uses the old static shared confetti background — those pieces are
-     hidden here (kept for .featured3, which still shares the same generated layer) and
-     replaced by this section's own always-drifting ambient pieces + the N-assembly graphic. */
+     hidden here and replaced by this section's own always-drifting ambient pieces + the
+     N-assembly graphic. featured3 no longer uses it either (see .featured3-gutter below) —
+     kept generated in the frontmatter rather than deleted, in case a future section still
+     wants the shared static layer. */
   .confetti-hero{display:none;}
+  .confetti-f3{display:none;}
   .hero-ambient{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
   .confetti-drift{opacity:0;animation-name:ambientIn, confettiDrift;animation-duration:.8s, 7s;
     animation-timing-function:ease, ease-in-out;animation-iteration-count:1, infinite;
@@ -403,6 +406,15 @@
   .featured3{padding:110px 0 72px;position:relative;}
   .featured3 .section-head{margin-bottom:120px;}
   .featured3 > .wrap{position:relative;z-index:1;}
+  /* the static shared-layer confetti that used to fill this whole section's white background is
+     replaced by a handful of always-drifting pieces (same confetti-drift animation as the hero),
+     confined to the side gutters outside .wrap's 1180px content — never over the text/cards.
+     width:calc(50% - 590px) is 0 (not negative — CSS clamps a negative computed width to 0) on
+     any viewport narrower than 1180px+padding, so the gutters and their confetti simply vanish
+     there instead of overlapping the now-edge-to-edge content. */
+  .featured3-gutter{position:absolute;top:0;bottom:0;overflow:hidden;z-index:0;pointer-events:none;}
+  .featured3-gutter.left{left:0;width:calc(50% - 590px);}
+  .featured3-gutter.right{right:0;width:calc(50% - 590px);}
   .f3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   .f3-card{border:1px solid var(--line);border-radius:var(--radius);padding:0;background:#fff;box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;overflow:hidden;}
   .f3-card:hover{transform:scale(1.04);border-color:var(--blue);box-shadow:0 18px 40px -24px rgba(20,30,60,0.22);}
