@@ -261,6 +261,32 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   </div>
 </section>
 
+<section class="values">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Misión, visión y valores</div>
+      <h2>Lo que nos mueve, y hacia dónde vamos</h2>
+    </div>
+    <div class="principles-grid">
+      <div class="principle-card">
+        <div class="principle-icon c-green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <h3>Misión</h3>
+        <p>Traducir cada negocio al lenguaje de Zoho con método y cercanía. No partimos de la herramienta, sino del negocio real: Zoho es el medio, nunca el fin.</p>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon c-blue"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h3>Visión</h3>
+        <p>Ser el Partner Zoho de referencia en España: el equipo al que se acude para hacer las cosas bien a la primera, con un roadmap realista que acompaña el crecimiento de cada cliente por fases.</p>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon c-magenta"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-9.5-8.8C1 8 2.4 5 5.5 5c1.9 0 3.3 1 4.5 2.5C11.2 6 12.6 5 14.5 5 17.6 5 19 8 18.5 11.2 16 15.7 12 20 12 20z"/></svg></div>
+        <h3>Valores</h3>
+        <p>Honestidad antes que atajos: preferimos decir qué no conviene hacer antes que prometerlo. Transparencia entre lo estándar y lo a medida, y compromiso a largo plazo con cada proyecto y cada persona del equipo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="newsletter">
   <div class="confetti-bg" aria-hidden="true">
     {newsletterConfetti.map((p) => (
@@ -385,6 +411,16 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   .tray-mobile-year{font-family:'Sora',sans-serif;font-weight:800;font-size:12.5px;color:var(--blue);margin-bottom:2px;}
   .tray-mobile-item h4{margin:0 0 4px;font-size:14.5px;}
   .tray-mobile-item p{margin:0;font-size:13px;line-height:1.55;color:var(--ink-soft);}
+
+  .values{background:var(--mist);padding:122px 0 76px;position:relative;margin-top:-50px;overflow:hidden;clip-path: polygon(0% 0px, 100% 50px, 100% 100%, 0% 100%);}
+  /* reuses .principle-card from the "Quiénes somos" section above for visual consistency, just
+     with a color-coded icon per card instead of the single hardcoded blue tint. */
+  .principle-icon.c-green{background:rgba(32,178,76,0.1);}
+  .principle-icon.c-green svg{stroke:var(--green);}
+  .principle-icon.c-blue{background:rgba(51,92,170,0.1);}
+  .principle-icon.c-blue svg{stroke:var(--blue);}
+  .principle-icon.c-magenta{background:rgba(189,32,88,0.1);}
+  .principle-icon.c-magenta svg{stroke:var(--magenta);}
 
   @media (max-width:880px){
     .empresa-about{padding-top:56px;}
