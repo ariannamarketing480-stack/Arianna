@@ -415,6 +415,14 @@
   .featured3-gutter{position:absolute;top:0;bottom:0;overflow:hidden;z-index:0;pointer-events:none;}
   .featured3-gutter.left{left:0;width:calc(50% - 590px);}
   .featured3-gutter.right{right:0;width:calc(50% - 590px);}
+  /* a few pieces sitting right above the "Partner Zoho España" text/card row, in the same
+     centered 1180px column as .wrap (so they never land past its edges into the gutters above),
+     placed close to the row's top edge on purpose — most of this 110px top-padding band stays
+     clear, but the last ~35px of it doesn't, so the confetti reads as close to the content
+     instead of separated from it by a wide blank strip. */
+  .featured3-top-confetti{position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:1180px;height:110px;overflow:visible;z-index:0;pointer-events:none;
+  }
   .f3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   .f3-card{border:1px solid var(--line);border-radius:var(--radius);padding:0;background:#fff;box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;overflow:hidden;}
   .f3-card:hover{transform:scale(1.04);border-color:var(--blue);box-shadow:0 18px 40px -24px rgba(20,30,60,0.22);}
