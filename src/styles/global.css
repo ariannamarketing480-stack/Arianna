@@ -239,25 +239,15 @@
   .partner-text span{display:block;font-weight:800;color:var(--blue);}
   .conpas-mark{width:52px;height:54px;flex:none;overflow:visible;}
   .conpas-mark polygon{opacity:1;}
-  .conpas-mark rect{animation-duration:6.5s;animation-iteration-count:infinite;animation-timing-function:cubic-bezier(.65,0,.35,1);}
-  .conpas-mark .clip-green{animation-name:conpasGrowGreen;}
-  .conpas-mark .clip-blue{animation-name:conpasGrowBlue;}
-  .conpas-mark .clip-magenta{animation-name:conpasGrowMagenta;}
-  @keyframes conpasGrowGreen{
-    0%{y:558;height:0;}
-    15%,100%{y:30;height:528;}
-  }
-  @keyframes conpasGrowBlue{
-    0%,15%{y:126;height:0;}
-    30%,100%{y:126;height:363;}
-  }
-  @keyframes conpasGrowMagenta{
-    0%,30%{y:582;height:0;}
-    45%,100%{y:60;height:522;}
-  }
-  @media (prefers-reduced-motion: reduce){ .conpas-mark rect{animation:none;}
-    .conpas-mark .clip-green{y:30;height:528;} .conpas-mark .clip-blue{y:126;height:363;} .conpas-mark .clip-magenta{y:60;height:522;}
-  }
+  /* used to reveal each color via a CSS @keyframes animation of the clip-path rect's own y/height
+     (SVG geometry properties driven as CSS). That animation reports playState:"running" via the
+     Web Animations API but never actually changes the computed height/y here — a real browser
+     gap in animating SVG presentation-attribute geometry through @keyframes — so the badge
+     rendered permanently empty (clipped to height:0) instead of just at a bad random frame.
+     Setting the rects to their fully-grown values directly sidesteps the broken animation. */
+  .conpas-mark .clip-green{y:30px;height:528px;}
+  .conpas-mark .clip-blue{y:126px;height:363px;}
+  .conpas-mark .clip-magenta{y:60px;height:522px;}
 
   /* hero centerpiece: behind the (always-visible) title, ~45 small confetti fragments float
      loose across the whole hero, then converge once into the exact N mark (same vertices as
