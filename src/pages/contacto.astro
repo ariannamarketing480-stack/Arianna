@@ -1,0 +1,239 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+// deterministic PRNG so the confetti layout stays stable across rebuilds
+function mulberry32(seed) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const CONFETTI_SHAPES = ['shape-tri1', 'shape-tri2', 'shape-para', 'shape-rhombus'];
+const CONFETTI_COLORS = ['c-green', 'c-magenta', 'c-blue'];
+
+// same generator + palette as the home/empresa pages, so the newsletter section reads identically here.
+function makeConfettiGrid(seed, cols, rows, textZone, opts = {}) {
+  const {
+    skipProb = 0.12,
+    longRatio = 0.16,
+    colStart = -6,
+    colEnd = 106,
+    rowStart = -8,
+    rowEnd = 108,
+  } = opts;
+  const rand = mulberry32(seed);
+  const cellW = (colEnd - colStart) / cols;
+  const cellH = (rowEnd - rowStart) / rows;
+  const pieces = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (rand() < skipProb) continue;
+
+      const cellLeft = colStart + c * cellW;
+      const cellTop = rowStart + r * cellH;
+      const left = Math.round(cellLeft + cellW / 2 + (rand() - 0.5) * cellW * 0.65);
+      const top = Math.round(cellTop + cellH / 2 + (rand() - 0.5) * cellH * 0.65);
+
+      const isLong = rand() < longRatio;
+      const shape = isLong
+        ? 'shape-para'
+        : CONFETTI_SHAPES[Math.floor(rand() * CONFETTI_SHAPES.length)];
+      const color = CONFETTI_COLORS[Math.floor(rand() * CONFETTI_COLORS.length)];
+      const rot = Math.round(rand() * 70 - 35);
+
+      let w, h;
+      if (isLong) {
+        w = Math.round(34 + rand() * 24);
+        h = Math.round(240 + rand() * 220);
+      } else if (shape === 'shape-rhombus') {
+        w = Math.round(34 + rand() * 22);
+        h = Math.round(w * (2.0 + rand() * 0.9));
+      } else if (shape === 'shape-para') {
+        w = Math.round(36 + rand() * 26);
+        h = Math.round(w * (1.7 + rand() * 0.7));
+      } else {
+        w = Math.round(48 + rand() * 46);
+        h = Math.round(58 + rand() * 70);
+      }
+
+      const heightPct = (h / 1250) * 100;
+      const verticalOverlap = top <= textZone.y1 && top + heightPct >= textZone.y0;
+      const inTextZone = textZone && left >= textZone.x0 && left <= textZone.x1 && verticalOverlap;
+      const opacity = inTextZone ? 0.14 : 1;
+
+      pieces.push({ color, shape, left, top, w, h, rot, opacity });
+    }
+  }
+  return pieces;
+}
+
+// newsletter section: same confetti system as the home/empresa pages, transparent overall (not
+// just behind the text), since it's a small, dark, understated closing bar.
+const NEWSLETTER_HEIGHT_PX = 240;
+const NEWSLETTER_TEXT_ZONE = { x0: 0, x1: 45, y0: 30, y1: 80 };
+const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
+  skipProb: 0.25,
+  longRatio: 0.12,
+}).map((p) => {
+  const heightPct = (p.h / NEWSLETTER_HEIGHT_PX) * 100;
+  const inZone =
+    p.left >= NEWSLETTER_TEXT_ZONE.x0 &&
+    p.left <= NEWSLETTER_TEXT_ZONE.x1 &&
+    p.top <= NEWSLETTER_TEXT_ZONE.y1 &&
+    p.top + heightPct >= NEWSLETTER_TEXT_ZONE.y0;
+  return { ...p, opacity: inZone ? 0.1 : 0.5 };
+});
+---
+
+<Layout title="CONPAS · Contacto" description="Habla con Conpas, tu Partner Zoho Premium: cuéntanos tu proyecto y un especialista te responde en menos de 24h laborables.">
+<Header />
+
+<section class="contact-hero">
+  <div class="wrap">
+    <div class="section-head contact-head">
+      <div class="section-eyebrow">Contacto</div>
+      <h2>Hablemos de tu proyecto</h2>
+      <p>Cuéntanos qué necesita tu negocio y un especialista de tu zona te responde en menos de 24h laborables. Sin compromiso, sin promesas vacías.</p>
+    </div>
+  </div>
+</section>
+
+<section class="contact-main">
+  <div class="wrap contact-grid">
+    <form class="contact-form" id="contactForm" novalidate>
+      <div class="form-row">
+        <label><span>Nombre<span class="req">*</span></span>
+          <input type="text" name="nombre" autocomplete="name" required>
+        </label>
+        <label><span>Empresa</span>
+          <input type="text" name="empresa" autocomplete="organization">
+        </label>
+      </div>
+      <div class="form-row">
+        <label><span>Email<span class="req">*</span></span>
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label><span>Teléfono</span>
+          <input type="tel" name="telefono" autocomplete="tel">
+        </label>
+      </div>
+      <label><span>¿En qué podemos ayudarte?<span class="req">*</span></span>
+        <textarea name="mensaje" rows="5" required></textarea>
+      </label>
+      <button type="submit" class="btn btn-primary">Enviar mensaje</button>
+      <p class="contact-form-note" id="contactFormNote" role="status"></p>
+    </form>
+
+    <div class="contact-info">
+      <div class="contact-info-card">
+        <div class="contact-info-icon"><svg viewBox="0 0 24 24"><path d="M4 21V6l8-3 8 3v15"/><path d="M4 21h16M9 21v-5h6v5M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/></svg></div>
+        <h3>Galicia</h3>
+        <a href="tel:+34982489009">982 48 90 09</a>
+        <span>Lugo</span>
+      </div>
+      <div class="contact-info-card">
+        <div class="contact-info-icon"><svg viewBox="0 0 24 24"><path d="M4 21V6l8-3 8 3v15"/><path d="M4 21h16M9 21v-5h6v5M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/></svg></div>
+        <h3>Madrid</h3>
+        <a href="tel:+34919011862">919 01 18 62</a>
+        <span>Madrid</span>
+      </div>
+      <div class="contact-info-card">
+        <div class="contact-info-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+        <h3>Horario</h3>
+        <span>Lunes a viernes</span>
+        <span>9:00 – 18:00</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="newsletter">
+  <div class="confetti-bg" aria-hidden="true">
+    {newsletterConfetti.map((p) => (
+      <span
+        class={`confetti ${p.color} ${p.shape}`}
+        style={`left:${p.left}%; top:${p.top}%; width:${p.w}px; height:${p.h}px; transform:rotate(${p.rot}deg) translateZ(0); opacity:${p.opacity};`}
+      />
+    ))}
+  </div>
+  <div class="wrap nl-row">
+    <div>
+      <h3>Suscríbete a nuestra newsletter</h3>
+      <p>Te mantenemos informado de todas las novedades de Zoho.</p>
+    </div>
+    <div class="nl-form">
+      <input type="email" placeholder="Tu email">
+      <button>Suscribirse</button>
+    </div>
+  </div>
+</section>
+
+<Footer />
+
+<script is:inline>
+(function(){
+  // no backend behind this form yet — show an inline confirmation instead of silently failing
+  // or navigating away, same "static demo" spirit as the chatbot elsewhere on the site.
+  var form = document.getElementById('contactForm');
+  var note = document.getElementById('contactFormNote');
+  if (!form || !note) return;
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    note.textContent = '¡Gracias! Hemos recibido tu mensaje, te contactaremos en menos de 24h laborables.';
+    note.classList.add('is-success');
+    form.reset();
+  });
+})();
+</script>
+
+<style>
+  .contact-hero{padding:88px 0 0;}
+  .contact-head{max-width:640px;}
+  .contact-main{padding:36px 0 122px;}
+  .contact-grid{display:grid;grid-template-columns:1.3fr 0.7fr;gap:40px;align-items:start;}
+
+  .contact-form{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:32px;box-shadow:0 24px 60px -28px rgba(20,30,60,0.2);
+    display:flex;flex-direction:column;gap:18px;
+  }
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .contact-form label{display:flex;flex-direction:column;gap:7px;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .contact-form .req{color:var(--magenta);margin-left:2px;}
+  .contact-form input,.contact-form textarea{
+    font:inherit;font-size:14.5px;font-weight:400;padding:11px 14px;border-radius:10px;
+    border:1.5px solid var(--line);background:var(--paper);color:var(--ink);resize:vertical;
+    transition:border-color .2s ease;
+  }
+  .contact-form input:focus,.contact-form textarea:focus{outline:none;border-color:var(--blue);}
+  .contact-form .btn{align-self:flex-start;}
+  .contact-form-note{margin:0;font-size:13.5px;color:var(--ink-soft);min-height:1.4em;}
+  .contact-form-note.is-success{color:var(--green);font-weight:600;}
+
+  .contact-info{display:flex;flex-direction:column;gap:16px;}
+  .contact-info-card{background:var(--mist);border-radius:var(--radius);padding:22px 24px;}
+  .contact-info-icon{width:38px;height:38px;border-radius:10px;background:rgba(51,92,170,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+  .contact-info-icon svg{width:20px;height:20px;fill:none;stroke:var(--blue);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .contact-info-card h3{margin:0 0 6px;font-size:15.5px;}
+  .contact-info-card a,.contact-info-card span{display:block;font-size:13.8px;color:var(--ink-soft);text-decoration:none;line-height:1.6;}
+  .contact-info-card a{color:var(--blue);font-weight:600;}
+  .contact-info-card a:hover{text-decoration:underline;}
+
+  @media (max-width:880px){
+    .contact-hero{padding-top:56px;}
+    .contact-grid{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
+  }
+</style>
+</Layout>
