@@ -44,10 +44,15 @@
   .confetti.c-green{background:var(--green);}
   .confetti.c-magenta{background:var(--magenta);}
   .confetti.c-blue{background:var(--blue);}
-  .shape-tri1{clip-path:polygon(0% 0%,100% 20%,25% 100%);}
-  .shape-tri2{clip-path:polygon(60% 0%,100% 45%,30% 100%);}
-  .shape-para{clip-path:polygon(0% 18%,100% 0%,100% 82%,0% 100%);}
-  .shape-rhombus{clip-path:polygon(55% 0%,100% 42%,45% 100%,0% 58%);}
+  /* shapes matched to the reference confetti image: a clean right triangle (flat vertical edge,
+     point at the bottom-left), a parallelogram ribbon (equal slant top and bottom, so the two
+     long edges stay parallel), and a fully symmetric rhombus — not the previous asymmetric
+     "kite" cuts. tri2 is tri1 mirrored horizontally, for left/right variety while keeping the
+     exact same shape. */
+  .shape-tri1{clip-path:polygon(0% 100%,100% 0%,100% 100%);}
+  .shape-tri2{clip-path:polygon(100% 100%,0% 0%,0% 100%);}
+  .shape-para{clip-path:polygon(0% 20%,100% 0%,100% 80%,0% 100%);}
+  .shape-rhombus{clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);}
 
   .foot-flag{ width:46px; flex:none; display:flex; align-items:center; }
   .foot-flag img{ display:block; width:100%; height:auto; }
