@@ -127,7 +127,15 @@
   .mobile-nav a.btn{border-bottom:none;text-align:center;}
 
   /* hero */
-  .hero{position:relative;overflow:hidden;padding:76px 0 60px;min-height:640px;display:flex;align-items:center;}
+  /* fills the first screen on any monitor so the next section never peeks in before the user
+     scrolls — min-height:640px stays as a floor for very short viewports (landscape phones,
+     zoomed-in browsers) where 100dvh alone would cramp the N/text. 100dvh (not 100vh) accounts
+     for mobile browsers' collapsing address bar; browsers without dvh support just keep the
+     100vh line above it, since an unsupported value is ignored rather than replacing it. */
+  .hero{position:relative;overflow:hidden;padding:76px 0 60px;min-height:640px;display:flex;align-items:center;
+    min-height:max(640px, 100vh);
+    min-height:max(640px, 100dvh);
+  }
   .hero > .wrap{width:100%;}
   /* the hero no longer uses the old static shared confetti background — those pieces are
      hidden here (kept for .featured3, which still shares the same generated layer) and
