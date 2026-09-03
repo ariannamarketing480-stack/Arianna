@@ -170,6 +170,7 @@
   @media (prefers-reduced-motion: reduce){ .confetti-filler{animation:none;opacity:.32;transform:none;} }
   @media (max-width:880px){ .hero-filler{display:none;} }
   .hero-center{max-width:640px;margin:0 auto;text-align:center;position:relative;z-index:1;}
+  .hero-copy-block{transform:translateY(-38px);}
   .hero-center .eyebrow{margin-left:auto;margin-right:auto;}
   .hero-center .lede{margin-left:auto;margin-right:auto;}
   .hero-center .cta-row{justify-content:center;}
@@ -194,8 +195,11 @@
   /* the hero's own claim sits below the assembled N, not inline with the title — it only
      starts typing once the N has finished converging (nFragAssemble's last piece lands
      around 6.4s: 7.5s cycle * 73.9% + up to .9s stagger), so it reads as a beat after the
-     logo settles rather than competing with it. */
-  .hero-claim{position:absolute;left:50%;bottom:72px;transform:translateX(-50%);
+     logo settles rather than competing with it. Anchored from the hero's vertical CENTER
+     (same anchor n-assemble-inner uses), not its bottom edge — the hero's height now adapts
+     to the viewport (100dvh), so a bottom-anchored offset would drift away from the N on
+     tall screens instead of staying a fixed distance below it. */
+  .hero-claim{position:absolute;left:50%;top:calc(50% + 181px);transform:translateX(-50%);
     margin:0;z-index:1;text-align:center;white-space:nowrap;
     font-size:20px;border-right:none;
     animation-name:claimType;
@@ -252,7 +256,7 @@
      .conpas-mark above, subdivided into a grid) big and centered, and stay put — plays once
      on load (fill-mode:forwards, no loop), the title never hides behind it. */
   .n-assemble{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible;}
-  .n-assemble-inner{position:absolute;left:50%;top:50%;width:400px;height:414px;overflow:visible;
+  .n-assemble-inner{position:absolute;left:50%;top:calc(50% - 38px);width:400px;height:414px;overflow:visible;
     transform:translate(-50%,-50%);
   }
   .n-frag-outer{transform-box:fill-box;transform-origin:center;opacity:0;transform:var(--scatter);
