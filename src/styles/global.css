@@ -209,7 +209,7 @@
      tall screens instead of staying a fixed distance below it. */
   .hero-claim{position:absolute;left:50%;top:calc(50% + 181px);transform:translateX(-50%);
     margin:0;z-index:1;text-align:center;white-space:nowrap;
-    font-size:20px;border-right:none;
+    font-size:23px;border-right:none;
     animation-name:claimType;
     animation-duration:2s;
     animation-timing-function:steps(39,end);
