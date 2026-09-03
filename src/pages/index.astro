@@ -1486,4 +1486,45 @@ initCarousel({trackId:'casesTrack', dotsId:'casesDots', carouselSel:'.cases-caro
 })();
 </script>
 
+<script is:inline>
+(function(){
+  // replay the N-assembly animation (scattered pieces converging into the logo) every time the
+  // hero scrolls back into view, not just once on page load — the CSS animation itself only ever
+  // plays once per element, so re-triggering it means forcing a reflow with animation:none in
+  // between (the standard way to restart a CSS animation from JS).
+  var hero = document.querySelector('.hero');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!hero || reduceMotion || !('IntersectionObserver' in window)) return;
+
+  var hasEnteredOnce = false;
+  var hasLeftSinceEnter = false;
+
+  function replayNAssembly(){
+    var outers = document.querySelectorAll('.n-frag-outer');
+    var inners = document.querySelectorAll('.n-frag-inner');
+    outers.forEach(function(el){ el.style.animation = 'none'; });
+    inners.forEach(function(el){ el.style.animation = 'none'; });
+    // reading offsetHeight forces the browser to flush the "none" state before it's cleared,
+    // otherwise both style changes would get batched together and the restart wouldn't happen.
+    void hero.offsetHeight;
+    outers.forEach(function(el){ el.style.animation = ''; });
+    inners.forEach(function(el){ el.style.animation = ''; });
+  }
+
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        if (hasEnteredOnce && hasLeftSinceEnter) replayNAssembly();
+        hasEnteredOnce = true;
+        hasLeftSinceEnter = false;
+      } else {
+        hasLeftSinceEnter = true;
+      }
+    });
+  }, { threshold: 0.3 });
+
+  observer.observe(hero);
+})();
+</script>
+
 </Layout>
