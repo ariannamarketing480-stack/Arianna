@@ -288,6 +288,12 @@
   }
   @media (max-width:1300px){ .n-assemble-inner{width:300px;height:311px;} }
   @media (max-width:880px){ .n-assemble{display:none;} }
+  /* extra accreditations beyond the main Zoho Premium Partner badge above — small, equal-weight
+     chips rather than another pair of big logos, since these read as supporting credentials. */
+  .cert-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+  .cert-badge{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--mist);border-radius:10px;padding:10px 6px;text-align:center;}
+  .cert-badge svg{width:20px;height:20px;fill:none;stroke:var(--blue);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+  .cert-badge span{font-size:10.5px;font-weight:700;line-height:1.25;color:var(--ink);}
   .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .stat-box{border-radius:var(--radius);padding:18px;}
   .stat-box.b1{background:rgba(51,92,170,0.09);}
