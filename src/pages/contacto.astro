@@ -164,21 +164,35 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
     <div class="maps-grid">
       <div class="map-card">
         <h3>Galicia — Lugo</h3>
-        <iframe
-          src="https://www.google.com/maps?q=Calle%20C%C3%A1novas%20del%20Castillo%202%2C%2027002%20Lugo&output=embed"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          title="Mapa de la sede de Lugo"
-        ></iframe>
+        <div class="map-frame-wrap">
+          <iframe
+            id="mapLugo"
+            data-src="https://www.google.com/maps?q=Calle%20C%C3%A1novas%20del%20Castillo%202%2C%2027002%20Lugo&output=embed"
+            src="https://www.google.com/maps?q=Calle%20C%C3%A1novas%20del%20Castillo%202%2C%2027002%20Lugo&output=embed"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mapa de la sede de Lugo"
+          ></iframe>
+          <button type="button" class="map-recenter" data-target="mapLugo" aria-label="Volver a centrar el mapa en la sede de Lugo">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+        </div>
       </div>
       <div class="map-card">
         <h3>Madrid</h3>
-        <iframe
-          src="https://www.google.com/maps?q=Calle%20del%20Coraz%C3%B3n%20de%20Mar%C3%ADa%2048%2C%2028002%20Madrid&output=embed"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          title="Mapa de la sede de Madrid"
-        ></iframe>
+        <div class="map-frame-wrap">
+          <iframe
+            id="mapMadrid"
+            data-src="https://www.google.com/maps?q=Calle%20del%20Coraz%C3%B3n%20de%20Mar%C3%ADa%2048%2C%2028002%20Madrid&output=embed"
+            src="https://www.google.com/maps?q=Calle%20del%20Coraz%C3%B3n%20de%20Mar%C3%ADa%2048%2C%2028002%20Madrid&output=embed"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mapa de la sede de Madrid"
+          ></iframe>
+          <button type="button" class="map-recenter" data-target="mapMadrid" aria-label="Volver a centrar el mapa en la sede de Madrid">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -227,6 +241,21 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
 })();
 </script>
 
+<script is:inline>
+(function(){
+  // the embedded map is a cross-origin iframe (no API key, no JS access to its internal pan/zoom
+  // state), so the only way to "recenter" it from here is to reload it with its original src —
+  // that resets Google's own default view back to the office marker.
+  document.querySelectorAll('.map-recenter').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var iframe = document.getElementById(btn.dataset.target);
+      if (!iframe) return;
+      iframe.src = iframe.dataset.src;
+    });
+  });
+})();
+</script>
+
 <style>
   .contact-hero{padding:88px 0 0;}
   .contact-head{max-width:640px;}
@@ -236,7 +265,16 @@ const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
   .maps-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
   .map-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);background:#fff;}
   .map-card h3{margin:0;padding:14px 18px;font-size:14.5px;border-bottom:1px solid var(--line);}
+  .map-frame-wrap{position:relative;}
   .map-card iframe{width:100%;height:260px;border:0;display:block;}
+  .map-recenter{
+    position:absolute;bottom:12px;right:12px;width:36px;height:36px;border-radius:50%;
+    background:#fff;border:1px solid var(--line);box-shadow:0 6px 16px -6px rgba(20,30,60,0.35);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .map-recenter:hover{transform:scale(1.08);box-shadow:0 8px 20px -6px rgba(20,30,60,0.45);}
+  .map-recenter svg{width:18px;height:18px;fill:none;stroke:var(--blue);stroke-width:1.8;stroke-linecap:round;}
   .contact-grid{display:grid;grid-template-columns:1.3fr 0.7fr;gap:40px;align-items:start;}
 
   .contact-form{
