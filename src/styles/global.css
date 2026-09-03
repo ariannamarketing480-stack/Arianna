@@ -286,11 +286,10 @@
   .cert-badge span{font-size:10.5px;font-weight:700;line-height:1.25;color:var(--ink);}
   .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .stat-box{border-radius:var(--radius);padding:18px;}
-  .stat-box.b1{background:rgba(51,92,170,0.09);}
-  .stat-box.b2{background:rgba(32,178,76,0.10);}
-  .stat-box.b3{background:rgba(189,32,88,0.10);}
+  .stat-box.b2{background:var(--mist);}
+  .stat-box.b3{background:var(--mist);}
   .stat-num{font-size:28px;font-weight:800;font-family:'Sora',sans-serif;}
-  .stat-num.blue{color:var(--blue);} .stat-num.green{color:var(--green);} .stat-num.magenta{color:var(--magenta);}
+  .stat-num.blue{color:var(--blue);}
   .stat-label{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
 
   /* reto / solucion / resultados strip — carried over from the landing concept */
