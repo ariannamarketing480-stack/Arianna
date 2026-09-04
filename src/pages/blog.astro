@@ -118,6 +118,20 @@ const SECTIONS = [
         date: '4 feb 2026',
         read: '7 min',
       },
+      {
+        tag: 'Guías',
+        title: 'Zoho Analytics: cómo montar tu primer dashboard de ventas en un día',
+        excerpt: 'Conecta tus fuentes de datos y ten un panel de ventas funcionando sin depender de un analista dedicado.',
+        date: '28 oct 2025',
+        read: '5 min',
+      },
+      {
+        tag: 'Guías',
+        title: 'Errores habituales al configurar flujos de aprobación en Zoho CRM',
+        excerpt: 'Los fallos más comunes que bloquean descuentos, pedidos o presupuestos sin que nadie se dé cuenta a tiempo.',
+        date: '21 oct 2025',
+        read: '6 min',
+      },
     ],
   },
   {
@@ -146,6 +160,20 @@ const SECTIONS = [
         excerpt: 'Repasamos las últimas incorporaciones a la suite y cómo aprovecharlas sin complicar la operativa diaria.',
         date: '13 ene 2026',
         read: '5 min',
+      },
+      {
+        tag: 'Conpas',
+        title: 'Conpas abre nuevas plazas en su equipo de consultoría',
+        excerpt: 'Seguimos creciendo en Galicia y Madrid para acompañar más proyectos de implantación Zoho.',
+        date: '14 oct 2025',
+        read: '3 min',
+      },
+      {
+        tag: 'Zoho',
+        title: 'Zoho Mail estrena bandeja unificada con IA para priorizar correos',
+        excerpt: 'La nueva función clasifica y resume los correos más urgentes antes de que los abras.',
+        date: '7 oct 2025',
+        read: '4 min',
       },
     ],
   },
@@ -176,6 +204,20 @@ const SECTIONS = [
         date: '22 dic 2025',
         read: '5 min',
       },
+      {
+        tag: 'Consultoría',
+        title: 'Cómo automatizar la facturación recurrente en Zoho Books',
+        excerpt: 'Configura suscripciones y cobros periódicos sin generar cada factura a mano.',
+        date: '30 sep 2025',
+        read: '7 min',
+      },
+      {
+        tag: 'CRM',
+        title: 'Plantillas de informes en Zoho Analytics que todo comercial debería tener',
+        excerpt: 'Los paneles que más usamos con nuestros clientes para seguir el pipeline de ventas semana a semana.',
+        date: '23 sep 2025',
+        read: '6 min',
+      },
     ],
   },
   {
@@ -204,6 +246,20 @@ const SECTIONS = [
         excerpt: 'Los motivos más comunes de rechazo en las solicitudes de Kit Digital, y cómo evitarlos antes de presentar la tuya.',
         date: '2 dic 2025',
         read: '5 min',
+      },
+      {
+        tag: 'Kit Digital',
+        title: 'Kit Digital y Zoho: qué categorías de ayuda cubren cada módulo',
+        excerpt: 'CRM, gestión de procesos, ciberseguridad: qué categoría del Kit Digital financia cada parte de tu proyecto Zoho.',
+        date: '16 sep 2025',
+        read: '8 min',
+      },
+      {
+        tag: 'GDPR',
+        title: 'Contratos de encargo de tratamiento: qué debe firmar tu proveedor Zoho',
+        excerpt: 'Las cláusulas mínimas que debe incluir el contrato con tu implantador si accede a datos de tus clientes.',
+        date: '9 sep 2025',
+        read: '6 min',
       },
     ],
   },
@@ -247,20 +303,28 @@ const SECTIONS = [
         <div class="section-eyebrow">{section.eyebrow}</div>
         <h2>{section.title}</h2>
       </div>
-      <div class="blog-grid">
-        {section.posts.map((post) => (
-          <a class="blog-card" href="#">
-            <div class="blog-card-image">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="M21 16l-5.5-5.5-4 4-2.5-2.5-5 5"/></svg>
+      <div class="apps-carousel blog-carousel" id={`${section.id}Carousel`}>
+        <div class="apps-arrow-circle prev" id={`${section.id}Prev`} role="button" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></div>
+        <div class="apps-arrow-circle next" id={`${section.id}Next`} role="button" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></div>
+        <div class="apps-track blog-track" id={`${section.id}Track`}>
+          {section.posts.map((post) => (
+            <div class="blog-card">
+              <div class="blog-card-image">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10.5" r="1.6"/><path d="M21 16l-5.5-5.5-4 4-2.5-2.5-5 5"/></svg>
+              </div>
+              <div class="blog-card-body">
+                <div class={`blog-card-tag ${section.color}`}>{post.tag}</div>
+                <h3>{post.title}</h3>
+                <p>{post.excerpt}</p>
+                <div class="blog-card-meta"><span>{post.date}</span><span>·</span><span>{post.read} de lectura</span></div>
+                <div class="app-bottom"><a href="#">Leer más</a></div>
+              </div>
             </div>
-            <div class="blog-card-body">
-              <div class={`blog-card-tag ${section.color}`}>{post.tag}</div>
-              <h3>{post.title}</h3>
-              <p>{post.excerpt}</p>
-              <div class="blog-card-meta"><span>{post.date}</span><span>·</span><span>{post.read} de lectura</span></div>
-            </div>
-          </a>
-        ))}
+          ))}
+        </div>
+        <div class="apps-nav">
+          <div class="apps-dots" id={`${section.id}Dots`}></div>
+        </div>
       </div>
     </div>
   </section>
@@ -299,11 +363,14 @@ const SECTIONS = [
   .blog-hero p{font-size:16px;color:var(--ink-soft);max-width:560px;margin:0;}
 
   .blog-section{padding:20px 0 56px;}
-  .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+
+  .blog-carousel{padding:0 4px;}
+  .blog-track{align-items:stretch;}
 
   .blog-card{
-    display:block;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
-    box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);color:inherit;text-decoration:none;
+    display:flex;flex-direction:column;flex:0 0 calc(33.333% - 11px);
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);color:inherit;
     transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
   }
   .blog-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 20px 44px -24px rgba(20,30,60,0.28);}
@@ -313,14 +380,15 @@ const SECTIONS = [
   .blog-card-image{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--mist);}
   .blog-card-image svg{width:34px;height:34px;stroke:var(--ink-soft);opacity:.5;}
 
-  .blog-card-body{padding:20px 22px 22px;}
+  .blog-card-body{display:flex;flex-direction:column;flex:1;padding:20px 22px 22px;}
   .blog-card-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:10px;}
   .blog-card-tag.c-blue{color:var(--blue);background:rgba(51,92,170,0.09);}
   .blog-card-tag.c-green{color:var(--green);background:rgba(32,178,76,0.10);}
   .blog-card-tag.c-magenta{color:var(--magenta);background:rgba(189,32,88,0.10);}
   .blog-card h3{font-size:16.5px;margin:0 0 8px;line-height:1.35;}
   .blog-card-body p{font-size:13.5px;line-height:1.6;color:var(--ink-soft);margin:0 0 14px;}
-  .blog-card-meta{font-size:12px;color:var(--ink-soft);display:flex;gap:6px;}
+  .blog-card-meta{font-size:12px;color:var(--ink-soft);display:flex;gap:6px;margin-bottom:14px;}
+  .blog-card-body .app-bottom{margin-top:auto;}
 
   @media (max-width:880px){
     .blog-hero{padding-top:56px;}
@@ -330,7 +398,145 @@ const SECTIONS = [
        pieces would land right on top of the text. Hidden here rather than re-laid-out, same as
        the hero's own N-assembly graphic at this breakpoint. */
     .blog-hero .hero-ambient{display:none;}
-    .blog-grid{grid-template-columns:1fr;}
+    .blog-card{flex-basis:44%;}
+  }
+
+  @media (max-width:560px){
+    .blog-card{flex-basis:78%;}
   }
 </style>
+
+<script is:inline>
+function initCarousel(cfg){
+  var track = document.getElementById(cfg.trackId);
+  var dotsWrap = document.getElementById(cfg.dotsId);
+  var carousel = document.querySelector(cfg.carouselSel);
+  if(!track) return;
+
+  var originalCards = Array.prototype.slice.call(track.children);
+  // duplicate the set once so the scroll can loop seamlessly
+  originalCards.forEach(function(card){
+    track.appendChild(card.cloneNode(true));
+  });
+
+  var setWidth = 0;
+  function measure(){
+    setWidth = 0;
+    var gap = cfg.gap || 16;
+    originalCards.forEach(function(card){ setWidth += card.getBoundingClientRect().width + gap; });
+  }
+  measure();
+  window.addEventListener('resize', measure);
+
+  var perView = window.innerWidth <= 880 ? 1 : (cfg.perView || 4);
+  // scrollByCard: advance one card at a time (card 1 leaves, card 4 appears, etc.)
+  // instead of jumping a full page at once.
+  var pages = cfg.scrollByCard ? originalCards.length : Math.ceil(originalCards.length / perView);
+  for(var i=0;i<pages;i++){
+    var d = document.createElement('div');
+    d.className = 'apps-dot' + (i===0 ? ' active' : '');
+    dotsWrap.appendChild(d);
+  }
+  function pageWidth(){ return setWidth / pages; }
+  function updateDots(){
+    var pos = ((track.scrollLeft % setWidth) + setWidth) % setWidth;
+    var page = Math.round(pos / pageWidth()) % pages;
+    Array.prototype.forEach.call(dotsWrap.children, function(d,idx){
+      d.classList.toggle('active', idx===page);
+    });
+  }
+  // keep the dots in sync with any scroll source: autoplay, arrow clicks, or manual drag
+  track.addEventListener('scroll', updateDots);
+
+  var SPEED = cfg.speed || 0.45; // px per frame, slow drift
+  var playing = false;
+  var rafId = null;
+  var resumeTimer = null;
+  var pos = 0;
+
+  function frame(){
+    if(!playing) return;
+    pos += SPEED;
+    if(setWidth && pos >= setWidth){
+      pos -= setWidth;
+    }
+    track.scrollLeft = pos;
+    updateDots();
+    rafId = requestAnimationFrame(frame);
+  }
+  function play(){
+    if(cfg.autoplay === false) return;
+    if(playing) return;
+    playing = true;
+    pos = track.scrollLeft;
+    rafId = requestAnimationFrame(frame);
+  }
+  function pause(){
+    playing = false;
+    if(rafId) cancelAnimationFrame(rafId);
+  }
+  function pauseThenResume(delay){
+    pause();
+    if(resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(play, delay || 2600);
+  }
+
+  // start only once the carousel scrolls into view; stop when it leaves
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting) play(); else pause();
+    });
+  }, {threshold: 0.35});
+  io.observe(carousel);
+
+  // pause on manual interaction, resume shortly after
+  ['mouseenter','touchstart','pointerdown'].forEach(function(ev){
+    carousel.addEventListener(ev, function(){ pauseThenResume(3200); });
+  });
+  carousel.addEventListener('mouseleave', function(){ pauseThenResume(600); });
+
+  // custom eased scroll (slower and more natural than the browser's default "smooth" timing)
+  function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+  function smoothScrollBy(delta, duration){
+    var start = track.scrollLeft;
+    var startTime = null;
+    function step(ts){
+      if(startTime === null) startTime = ts;
+      var progress = Math.min((ts - startTime)/duration, 1);
+      track.scrollLeft = start + delta * easeInOutCubic(progress);
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function goTo(delta){
+    if(cfg.slowScroll){ smoothScrollBy(delta, cfg.scrollDuration || 650); }
+    else { track.scrollBy({left: delta, behavior:'smooth'}); }
+  }
+  document.getElementById(cfg.nextId).addEventListener('click', function(){
+    pauseThenResume(3200);
+    goTo(pageWidth());
+  });
+  document.getElementById(cfg.prevId).addEventListener('click', function(){
+    pauseThenResume(3200);
+    goTo(-pageWidth());
+  });
+
+  // manual drag support
+  var isDown=false, startX=0, startScroll=0;
+  track.addEventListener('pointerdown', function(e){
+    isDown = true; track.classList.add('is-dragging');
+    startX = e.clientX; startScroll = track.scrollLeft;
+  });
+  window.addEventListener('pointerup', function(){ isDown=false; track.classList.remove('is-dragging'); });
+  window.addEventListener('pointermove', function(e){
+    if(!isDown) return;
+    track.scrollLeft = startScroll - (e.clientX - startX);
+  });
+}
+
+initCarousel({trackId:'nuevosTrack', dotsId:'nuevosDots', carouselSel:'#nuevosCarousel', nextId:'nuevosNext', prevId:'nuevosPrev', perView:3, autoplay:false, scrollByCard:true, slowScroll:true, scrollDuration:650});
+initCarousel({trackId:'novedadesTrack', dotsId:'novedadesDots', carouselSel:'#novedadesCarousel', nextId:'novedadesNext', prevId:'novedadesPrev', perView:3, autoplay:false, scrollByCard:true, slowScroll:true, scrollDuration:650});
+initCarousel({trackId:'guiasTrack', dotsId:'guiasDots', carouselSel:'#guiasCarousel', nextId:'guiasNext', prevId:'guiasPrev', perView:3, autoplay:false, scrollByCard:true, slowScroll:true, scrollDuration:650});
+initCarousel({trackId:'legalTrack', dotsId:'legalDots', carouselSel:'#legalCarousel', nextId:'legalNext', prevId:'legalPrev', perView:3, autoplay:false, scrollByCard:true, slowScroll:true, scrollDuration:650});
+</script>
 </Layout>
