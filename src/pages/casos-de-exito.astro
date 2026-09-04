@@ -231,24 +231,18 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
             <div class="cx-timeline">
               <div class="cx-step">
                 <span class="cx-dot"></span>
-                <div class="cx-step-body">
-                  <span class="cx-step-label">Reto</span>
-                  <p>{c.reto}</p>
-                </div>
+                <span class="cx-step-label">Reto</span>
+                <p>{c.reto}</p>
               </div>
               <div class="cx-step">
                 <span class="cx-dot sol"></span>
-                <div class="cx-step-body">
-                  <span class="cx-step-label sol">Solución</span>
-                  <p>{c.solucion}</p>
-                </div>
+                <span class="cx-step-label sol">Solución</span>
+                <p>{c.solucion}</p>
               </div>
               <div class="cx-step">
                 <span class="cx-dot res"></span>
-                <div class="cx-step-body">
-                  <span class="cx-step-label res">Resultado</span>
-                  <p class="cx-result">{c.resultado}</p>
-                </div>
+                <span class="cx-step-label res">Resultado</span>
+                <p class="cx-result">{c.resultado}</p>
               </div>
             </div>
             <div class="app-bottom"><a href="#">Ver caso</a></div>
@@ -326,30 +320,28 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
     display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
   }
 
-  /* Reto → Solución → Resultado as a small vertical timeline: a dot per step, colour-matched to
-     its label, joined by a thin connecting line — reads as a project's progression rather than a
-     flat label/value list. Each step's text is clamped to 2 lines so one long case doesn't stretch
-     every card in its grid row. */
-  .cx-timeline{margin:0 0 10px;padding-top:8px;border-top:1px solid var(--line);}
-  .cx-step{position:relative;display:flex;gap:8px;padding-bottom:5px;}
-  .cx-step:last-child{padding-bottom:0;}
-  .cx-step::after{
-    content:"";position:absolute;left:3.5px;top:12px;bottom:-2px;width:1.5px;background:var(--line);
+  /* Reto → Solución → Resultado as a compact horizontal stepper: three columns, a dot per step
+     colour-matched to its label, joined by a connecting line running through their centers — the
+     same "project progression" idea as a vertical timeline, but in one shallow row so a bigger
+     photo doesn't push the card's total height up. */
+  .cx-timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 10px;padding-top:14px;border-top:1px solid var(--line);}
+  .cx-step{position:relative;padding-top:13px;}
+  .cx-step::before{
+    content:"";position:absolute;top:3px;left:50%;width:100%;height:1.5px;background:var(--line);
   }
-  .cx-step:last-child::after{display:none;}
+  .cx-step:last-child::before{display:none;}
   .cx-dot{
-    position:relative;z-index:1;flex:none;width:8px;height:8px;margin-top:3px;
-    border-radius:50%;background:var(--ink-soft);box-shadow:0 0 0 3px #fff;
+    position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:1;
+    width:8px;height:8px;border-radius:50%;background:var(--ink-soft);box-shadow:0 0 0 3px #fff;
   }
   .cx-dot.sol{background:var(--blue);}
   .cx-dot.res{background:var(--green);}
-  .cx-step-body{flex:1;min-width:0;}
-  .cx-step-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:1px;}
+  .cx-step-label{display:block;text-align:center;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:2px;}
   .cx-step-label.sol{color:var(--blue);}
   .cx-step-label.res{color:var(--green);}
-  .cx-step-body p{
-    margin:0;font-size:11.5px;line-height:1.3;color:var(--ink);
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+  .cx-step p{
+    margin:0;text-align:center;font-size:11px;line-height:1.3;color:var(--ink);
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;
   }
   .cx-result{font-weight:700;}
 
