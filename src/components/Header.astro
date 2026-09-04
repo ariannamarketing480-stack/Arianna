@@ -215,7 +215,7 @@ const EMPRESA_MENU = [
               <>
                 <div class="mega-col-title">{group.title}</div>
                 {group.items.map((item, i) => (
-                  <a class="mega-link" href={item.name === '¿Quiénes somos?' ? '/empresa' : '#'}>
+                  <a class="mega-link" href={item.name === '¿Quiénes somos?' ? '/empresa' : item.name === 'Casos de éxito' ? '/casos-de-exito' : '#'}>
                     <span
                       class="mega-icon c-blue"
                       set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${MEGA_ICON[item.icon]}</svg>`}
@@ -723,7 +723,88 @@ const EMPRESA_MENU = [
       "Data processing agreements: what your Zoho provider needs to sign",
     "Las cláusulas mínimas que debe incluir el contrato con tu implantador si accede a datos de tus clientes.":
       "The minimum clauses your implementer's contract must include if they access your customers' data.",
-    "Leer más": "Read more"
+    "Leer más": "Read more",
+
+    // casos de éxito page
+    "Cada proyecto, un reto de negocio convertido en un resultado medible sobre Zoho.":
+      "Every project is a business challenge turned into a measurable result on Zoho.",
+    "Todos": "All",
+    "Seguros": "Insurance",
+    "Salud": "Health",
+    "Laboratorios": "Labs",
+    "Reto": "Challenge",
+    "Solución": "Solution",
+    "Resultado": "Result",
+    "Ver caso →": "View case →",
+    "Clínica (ejemplo)": "Clinic (example)",
+    "Gestora inmobiliaria (ejemplo)": "Real estate agency (example)",
+    "Consultora estratégica (ejemplo)": "Strategy consultancy (example)",
+    "Laboratorio farmacéutico (ejemplo)": "Pharmaceutical lab (example)",
+    "Transformación digital de la gestión comercial de la aseguradora líder en decesos.":
+      "Digital transformation of sales management for the leading life/funeral insurer.",
+    "Gestión comercial dispersa y pérdida de datos entre canales.":
+      "Scattered sales management and data loss between channels.",
+    "Zoho CRM, Creator, Analytics y Campaigns a medida.":
+      "Custom Zoho CRM, Creator, Analytics and Campaigns.",
+    "+19% de productividad por comercial.": "+19% productivity per sales rep.",
+    "Digitalización de citas y expediente de pacientes.":
+      "Digitizing appointments and patient records.",
+    "Agenda manual y sin trazabilidad.": "Manual scheduling with no traceability.",
+    "Zoho Bookings + Creator a medida.": "Custom Zoho Bookings + Creator.",
+    "0 solapamientos de agenda.": "0 scheduling overlaps.",
+    "Zoho CRM para la gestión integral de una agencia de viajes.":
+      "Zoho CRM for end-to-end travel agency management.",
+    "Reservas y seguimiento comercial repartidos en hojas de cálculo independientes.":
+      "Bookings and sales follow-up scattered across separate spreadsheets.",
+    "Implantación de Zoho CRM adaptado a la operativa de agencias de viajes.":
+      "Zoho CRM rollout adapted to travel agency operations.",
+    "Un único sistema para todo el ciclo de venta y seguimiento del cliente.":
+      "A single system for the whole sales cycle and customer follow-up.",
+    "Puesta en marcha de varias aplicaciones de la suite Zoho para su operativa diagnóstica.":
+      "Rollout of several Zoho suite apps for their diagnostic operations.",
+    "Procesos de diagnóstico genético gestionados en herramientas dispersas y poco conectadas.":
+      "Genetic diagnostic processes run on scattered, poorly connected tools.",
+    "Implantación de Zoho CRM, Creator y Analytics adaptados a su flujo de trabajo.":
+      "Zoho CRM, Creator and Analytics rollout adapted to their workflow.",
+    "Mayor trazabilidad del proceso, de principio a fin.":
+      "Greater end-to-end process traceability.",
+    "Seguimiento de captaciones y visitas de principio a fin.":
+      "End-to-end tracking of listings and viewings.",
+    "Leads y visitas repartidos entre WhatsApp, Excel y el correo del agente.":
+      "Leads and viewings scattered across WhatsApp, Excel and the agent's inbox.",
+    "Zoho CRM con pipeline de captación, visitas y cierre a medida.":
+      "Zoho CRM with a custom listing, viewing and closing pipeline.",
+    "Ningún lead se queda sin seguimiento.": "No lead goes without follow-up.",
+    "Necesidad de soporte y evolución continua tras la implantación inicial de su CRM.":
+      "Need for ongoing support and evolution after their CRM's initial rollout.",
+    "Servicio de consultoría y mantenimiento continuo sobre Zoho CRM.":
+      "Ongoing consulting and maintenance service on Zoho CRM.",
+    "Un CRM que evoluciona con la operativa del centro, sin fricciones.":
+      "A CRM that evolves with the center's operations, without friction.",
+    "Implantación de Salesforce en el mayor grupo turístico del mundo.":
+      "Salesforce rollout at the world's largest tourism group.",
+    "Coordinar procesos comerciales a gran escala entre múltiples mercados y equipos.":
+      "Coordinating large-scale sales processes across multiple markets and teams.",
+    "Despliegue e integración de Salesforce adaptado a su operativa internacional.":
+      "Salesforce deployment and integration adapted to their international operations.",
+    "Una plataforma comercial común para equipos de distintos países.":
+      "One shared sales platform for teams across different countries.",
+    "Un CRM a medida para un equipo de consultores en constante movimiento.":
+      "A custom CRM for a consulting team that's always on the move.",
+    "Cada consultor llevaba sus cuentas a su manera, sin visibilidad conjunta.":
+      "Each consultant tracked accounts their own way, with no shared visibility.",
+    "Zoho CRM con vistas y automatizaciones a medida por línea de servicio.":
+      "Zoho CRM with custom views and automations per service line.",
+    "Un único cuadro de mando para dirección, sin depender de Excel.":
+      "A single dashboard for management, no longer dependent on Excel.",
+    "Trazabilidad de lote y cumplimiento normativo en un mismo sistema.":
+      "Batch traceability and regulatory compliance in a single system.",
+    "Registros de calidad y producción en documentos sueltos, difíciles de auditar.":
+      "Quality and production records in loose documents, hard to audit.",
+    "Zoho Creator a medida para trazabilidad de lote y control de calidad.":
+      "Custom Zoho Creator for batch traceability and quality control.",
+    "Auditorías que antes tardaban días, ahora se resuelven en horas.":
+      "Audits that used to take days are now resolved in hours."
   };
 
   var EN_TO_ES = {};

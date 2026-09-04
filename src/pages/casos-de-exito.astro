@@ -1,0 +1,365 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+// deterministic PRNG so the confetti layout stays stable across rebuilds
+function mulberry32(seed) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const CONFETTI_SHAPES = ['shape-tri1', 'shape-tri2', 'shape-para', 'shape-rhombus'];
+const CONFETTI_COLORS = ['c-green', 'c-magenta', 'c-blue'];
+
+// same generator + palette as the home/empresa/blog pages, so the newsletter section reads
+// identically here.
+function makeConfettiGrid(seed, cols, rows, textZone, opts = {}) {
+  const {
+    skipProb = 0.12,
+    longRatio = 0.16,
+    colStart = -6,
+    colEnd = 106,
+    rowStart = -8,
+    rowEnd = 108,
+  } = opts;
+  const rand = mulberry32(seed);
+  const cellW = (colEnd - colStart) / cols;
+  const cellH = (rowEnd - rowStart) / rows;
+  const pieces = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (rand() < skipProb) continue;
+
+      const cellLeft = colStart + c * cellW;
+      const cellTop = rowStart + r * cellH;
+      const left = Math.round(cellLeft + cellW / 2 + (rand() - 0.5) * cellW * 0.65);
+      const top = Math.round(cellTop + cellH / 2 + (rand() - 0.5) * cellH * 0.65);
+
+      const isLong = rand() < longRatio;
+      const shape = isLong
+        ? 'shape-para'
+        : CONFETTI_SHAPES[Math.floor(rand() * CONFETTI_SHAPES.length)];
+      const color = CONFETTI_COLORS[Math.floor(rand() * CONFETTI_COLORS.length)];
+      const rot = Math.round(rand() * 70 - 35);
+
+      let w, h;
+      if (isLong) {
+        w = Math.round(34 + rand() * 24);
+        h = Math.round(240 + rand() * 220);
+      } else if (shape === 'shape-rhombus') {
+        w = Math.round(34 + rand() * 22);
+        h = Math.round(w * (2.0 + rand() * 0.9));
+      } else if (shape === 'shape-para') {
+        w = Math.round(36 + rand() * 26);
+        h = Math.round(w * (1.7 + rand() * 0.7));
+      } else {
+        w = Math.round(48 + rand() * 46);
+        h = Math.round(58 + rand() * 70);
+      }
+
+      const heightPct = (h / 1250) * 100;
+      const verticalOverlap = top <= textZone.y1 && top + heightPct >= textZone.y0;
+      const inTextZone = textZone && left >= textZone.x0 && left <= textZone.x1 && verticalOverlap;
+      const opacity = inTextZone ? 0.14 : 1;
+
+      pieces.push({ color, shape, left, top, w, h, rot, opacity });
+    }
+  }
+  return pieces;
+}
+
+const NEWSLETTER_HEIGHT_PX = 240;
+const NEWSLETTER_TEXT_ZONE = { x0: 0, x1: 45, y0: 30, y1: 80 };
+const newsletterConfetti = makeConfettiGrid(53, 6, 3, NEWSLETTER_TEXT_ZONE, {
+  skipProb: 0.25,
+  longRatio: 0.12,
+}).map((p) => {
+  const heightPct = (p.h / NEWSLETTER_HEIGHT_PX) * 100;
+  const inZone =
+    p.left >= NEWSLETTER_TEXT_ZONE.x0 &&
+    p.left <= NEWSLETTER_TEXT_ZONE.x1 &&
+    p.top <= NEWSLETTER_TEXT_ZONE.y1 &&
+    p.top + heightPct >= NEWSLETTER_TEXT_ZONE.y0;
+  return { ...p, opacity: inZone ? 0.1 : 0.5 };
+});
+
+const SECTORS = [
+  { id: 'seguros', name: 'Seguros' },
+  { id: 'inmobiliarias', name: 'Inmobiliarias' },
+  { id: 'salud', name: 'Salud' },
+  { id: 'viajes', name: 'Agencias de viajes' },
+  { id: 'consultoria', name: 'Consultoría' },
+  { id: 'laboratorios', name: 'Laboratorios' },
+];
+
+const CASES = [
+  {
+    sector: 'seguros',
+    name: 'Meridiano · Grupo ASV',
+    tagline: 'Transformación digital de la gestión comercial de la aseguradora líder en decesos.',
+    reto: 'Gestión comercial dispersa y pérdida de datos entre canales.',
+    solucion: 'Zoho CRM, Creator, Analytics y Campaigns a medida.',
+    resultado: '+19% de productividad por comercial.',
+  },
+  {
+    sector: 'salud',
+    name: 'Clínica (ejemplo)',
+    tagline: 'Digitalización de citas y expediente de pacientes.',
+    reto: 'Agenda manual y sin trazabilidad.',
+    solucion: 'Zoho Bookings + Creator a medida.',
+    resultado: '0 solapamientos de agenda.',
+  },
+  {
+    sector: 'viajes',
+    name: 'Interrías',
+    tagline: 'Zoho CRM para la gestión integral de una agencia de viajes.',
+    reto: 'Reservas y seguimiento comercial repartidos en hojas de cálculo independientes.',
+    solucion: 'Implantación de Zoho CRM adaptado a la operativa de agencias de viajes.',
+    resultado: 'Un único sistema para todo el ciclo de venta y seguimiento del cliente.',
+  },
+  {
+    sector: 'laboratorios',
+    name: 'Nimgenetics',
+    tagline: 'Puesta en marcha de varias aplicaciones de la suite Zoho para su operativa diagnóstica.',
+    reto: 'Procesos de diagnóstico genético gestionados en herramientas dispersas y poco conectadas.',
+    solucion: 'Implantación de Zoho CRM, Creator y Analytics adaptados a su flujo de trabajo.',
+    resultado: 'Mayor trazabilidad del proceso, de principio a fin.',
+  },
+  {
+    sector: 'inmobiliarias',
+    name: 'Gestora inmobiliaria (ejemplo)',
+    tagline: 'Seguimiento de captaciones y visitas de principio a fin.',
+    reto: 'Leads y visitas repartidos entre WhatsApp, Excel y el correo del agente.',
+    solucion: 'Zoho CRM con pipeline de captación, visitas y cierre a medida.',
+    resultado: 'Ningún lead se queda sin seguimiento.',
+  },
+  {
+    sector: 'consultoria',
+    name: 'Basque Culinary Center',
+    tagline: 'Gestión y mantenimiento continuo de Zoho CRM.',
+    reto: 'Necesidad de soporte y evolución continua tras la implantación inicial de su CRM.',
+    solucion: 'Servicio de consultoría y mantenimiento continuo sobre Zoho CRM.',
+    resultado: 'Un CRM que evoluciona con la operativa del centro, sin fricciones.',
+  },
+  {
+    sector: 'viajes',
+    name: 'Tui',
+    tagline: 'Implantación de Salesforce en el mayor grupo turístico del mundo.',
+    reto: 'Coordinar procesos comerciales a gran escala entre múltiples mercados y equipos.',
+    solucion: 'Despliegue e integración de Salesforce adaptado a su operativa internacional.',
+    resultado: 'Una plataforma comercial común para equipos de distintos países.',
+  },
+  {
+    sector: 'consultoria',
+    name: 'Consultora estratégica (ejemplo)',
+    tagline: 'Un CRM a medida para un equipo de consultores en constante movimiento.',
+    reto: 'Cada consultor llevaba sus cuentas a su manera, sin visibilidad conjunta.',
+    solucion: 'Zoho CRM con vistas y automatizaciones a medida por línea de servicio.',
+    resultado: 'Un único cuadro de mando para dirección, sin depender de Excel.',
+  },
+  {
+    sector: 'laboratorios',
+    name: 'Laboratorio farmacéutico (ejemplo)',
+    tagline: 'Trazabilidad de lote y cumplimiento normativo en un mismo sistema.',
+    reto: 'Registros de calidad y producción en documentos sueltos, difíciles de auditar.',
+    solucion: 'Zoho Creator a medida para trazabilidad de lote y control de calidad.',
+    resultado: 'Auditorías que antes tardaban días, ahora se resuelven en horas.',
+  },
+];
+
+const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
+---
+
+<Layout title="CONPAS · Casos de éxito" description="Proyectos reales de implantación Zoho organizados por sector: el reto, la solución y el resultado de cada uno.">
+<Header />
+
+<section class="cx-hero">
+  <div class="hero-ambient" aria-hidden="true">
+    <span class="confetti c-blue shape-tri1 confetti-drift" style="left:50%;top:8%;width:18px;height:18px;rotate:-16deg;animation-delay:.1s,0s;"></span>
+    <span class="confetti c-green shape-para confetti-drift" style="left:56%;top:52%;width:18px;height:60px;rotate:14deg;animation-delay:.5s,.9s;"></span>
+    <span class="confetti c-magenta shape-rhombus confetti-drift" style="left:62%;top:20%;width:20px;height:44px;animation-delay:.3s,.4s;"></span>
+    <span class="confetti c-blue shape-tri2 confetti-drift" style="left:68%;top:68%;width:24px;height:24px;rotate:26deg;animation-delay:.6s,.2s;"></span>
+    <span class="confetti c-green shape-tri1 confetti-drift" style="left:74%;top:32%;width:18px;height:18px;animation-delay:.2s,.7s;"></span>
+    <span class="confetti c-magenta shape-para confetti-drift" style="left:80%;top:60%;width:16px;height:52px;rotate:-22deg;animation-delay:.7s,.3s;"></span>
+    <span class="confetti c-blue shape-rhombus confetti-drift" style="left:86%;top:16%;width:20px;height:44px;animation-delay:.4s,1.1s;"></span>
+    <span class="confetti c-green shape-tri2 confetti-drift" style="left:92%;top:46%;width:22px;height:22px;rotate:16deg;animation-delay:.15s,.6s;"></span>
+    <span class="confetti c-magenta shape-tri1 confetti-drift" style="left:96%;top:76%;width:18px;height:18px;animation-delay:.55s,.25s;"></span>
+    <span class="confetti c-blue shape-para confetti-drift" style="left:44%;top:4%;width:14px;height:34px;rotate:-12deg;animation-delay:.35s,.85s;"></span>
+    <span class="confetti c-green shape-rhombus confetti-drift" style="left:2%;top:88%;width:18px;height:40px;animation-delay:.45s,.15s;"></span>
+    <span class="confetti c-magenta shape-tri2 confetti-drift" style="left:20%;top:86%;width:16px;height:16px;rotate:20deg;animation-delay:.25s,.5s;"></span>
+    <span class="confetti c-blue shape-tri1 confetti-drift" style="left:4%;top:6%;width:14px;height:14px;rotate:-10deg;animation-delay:.6s,.35s;"></span>
+    <span class="confetti c-green shape-rhombus confetti-drift" style="left:31%;top:84%;width:16px;height:32px;animation-delay:.4s,.75s;"></span>
+    <span class="confetti c-magenta shape-para confetti-drift" style="left:15%;top:4%;width:14px;height:32px;rotate:16deg;animation-delay:.2s,.55s;"></span>
+    <span class="confetti c-blue shape-tri2 confetti-drift" style="left:97%;top:10%;width:16px;height:16px;rotate:22deg;animation-delay:.5s,.1s;"></span>
+  </div>
+  <div class="wrap">
+    <h1>Casos de éxito</h1>
+    <p>Cada proyecto, un reto de negocio convertido en un resultado medible sobre Zoho.</p>
+  </div>
+</section>
+
+<section class="cx-filter-section">
+  <div class="wrap">
+    <div class="cx-filters" id="cxFilters">
+      <button type="button" class="cx-pill active" data-sector="all">Todos</button>
+      {SECTORS.map((s) => (
+        <button type="button" class="cx-pill" data-sector={s.id}>{s.name}</button>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="cx-grid-section">
+  <div class="wrap">
+    <div class="cx-grid" id="cxGrid">
+      {CASES.map((c) => (
+        <div class="cx-card" data-sector={c.sector}>
+          <div class="cx-card-image">
+            <div class="cx-card-tag">{SECTOR_NAME[c.sector]}</div>
+            <svg viewBox="0 0 100 100"><circle cx="34" cy="34" r="8" fill="#C7CBD6"/><path d="M12 74 L38 46 L54 62 L70 40 L88 74 Z" fill="#C7CBD6"/></svg>
+          </div>
+          <div class="cx-card-body">
+            <h3>{c.name}</h3>
+            <p class="cx-tagline">{c.tagline}</p>
+            <div class="cx-facts">
+              <div class="cx-fact">
+                <span class="cx-fact-label">Reto</span>
+                <p>{c.reto}</p>
+              </div>
+              <div class="cx-fact">
+                <span class="cx-fact-label sol">Solución</span>
+                <p>{c.solucion}</p>
+              </div>
+              <div class="cx-fact">
+                <span class="cx-fact-label res">Resultado</span>
+                <p class="cx-result">{c.resultado}</p>
+              </div>
+            </div>
+            <div class="app-bottom"><a href="#">Ver caso →</a></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="newsletter">
+  <div class="confetti-bg" aria-hidden="true">
+    {newsletterConfetti.map((p) => (
+      <span
+        class={`confetti ${p.color} ${p.shape}`}
+        style={`left:${p.left}%; top:${p.top}%; width:${p.w}px; height:${p.h}px; transform:rotate(${p.rot}deg) translateZ(0); opacity:${p.opacity};`}
+      />
+    ))}
+  </div>
+  <div class="wrap nl-row">
+    <div>
+      <h3>Suscríbete a nuestra newsletter</h3>
+      <p>Te mantenemos informado de todas las novedades de Zoho.</p>
+    </div>
+    <div class="nl-form">
+      <input type="email" placeholder="Tu email">
+      <button>Suscribirse</button>
+    </div>
+  </div>
+</section>
+
+<Footer />
+
+<style>
+  /* same always-drifting confetti ribbon as the Blog hero, tuned for this page's longer title —
+     the dense cluster sits from the mid-point rightward, with only small pieces on the far left
+     (kept near the top/bottom edges) so nothing sits behind "Casos de éxito" or the subtitle. */
+  .cx-hero{position:relative;overflow:hidden;padding:110px 0 64px;}
+  .cx-hero > .wrap{position:relative;z-index:1;}
+  .cx-hero h1{font-size:56px;font-family:'Sora',sans-serif;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;}
+  .cx-hero p{font-size:16px;color:var(--ink-soft);max-width:560px;margin:0;}
+
+  .cx-filter-section{padding:0 0 32px;}
+  .cx-filters{display:flex;flex-wrap:wrap;gap:10px;}
+  .cx-pill{
+    display:inline-flex;align-items:center;padding:10px 20px;border-radius:999px;
+    border:1.5px solid var(--line);background:#fff;color:var(--ink);font-weight:600;font-size:14px;
+    cursor:pointer;transition:border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
+  }
+  .cx-pill:hover{border-color:var(--green);color:var(--green);}
+  .cx-pill.active{background:var(--green);border-color:var(--green);color:#fff;}
+
+  .cx-grid-section{padding:0 0 64px;}
+  .cx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+
+  .cx-card{
+    display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;box-shadow:0 16px 40px -28px rgba(20,30,60,0.18);
+    transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+  }
+  .cx-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 20px 44px -24px rgba(20,30,60,0.28);}
+
+  .cx-card-image{position:relative;aspect-ratio:2/1;display:flex;align-items:center;justify-content:center;background:var(--mist);}
+  .cx-card-image svg{width:52px;height:52px;}
+  .cx-card-tag{
+    position:absolute;top:14px;left:14px;background:#fff;
+    font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:5px 11px;border-radius:999px;color:var(--blue);box-shadow:0 6px 16px -8px rgba(20,30,60,0.35);
+  }
+
+  .cx-card-body{display:flex;flex-direction:column;flex:1;padding:20px 22px 22px;}
+  .cx-card-body h3{font-size:18px;margin:0 0 6px;line-height:1.3;}
+  .cx-tagline{font-size:13.5px;line-height:1.5;color:var(--ink-soft);margin:0 0 16px;}
+
+  .cx-facts{display:flex;flex-direction:column;gap:9px;margin:0 0 16px;padding-top:14px;border-top:1px solid var(--line);}
+  .cx-fact{display:flex;gap:10px;}
+  .cx-fact-label{flex:0 0 72px;padding-top:1px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);}
+  .cx-fact-label.sol{color:var(--blue);}
+  .cx-fact-label.res{color:var(--green);}
+  .cx-fact p{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink);flex:1;}
+  .cx-result{font-weight:700;}
+
+  .cx-card-body .app-bottom{margin-top:auto;}
+
+  @media (max-width:960px){
+    .cx-grid{grid-template-columns:repeat(2,1fr);}
+  }
+
+  @media (max-width:880px){
+    .cx-hero{padding-top:56px;}
+    .cx-hero h1{font-size:38px;}
+    /* same reasoning as the Blog hero: the ribbon is laid out for a wide screen where the title
+       sits in the left half, so on narrow viewports where it wraps across most of the width,
+       several pieces would land right on top of the text. */
+    .cx-hero .hero-ambient{display:none;}
+  }
+
+  @media (max-width:640px){
+    .cx-grid{grid-template-columns:1fr;}
+  }
+</style>
+
+<script is:inline>
+(function(){
+  var filters = document.getElementById('cxFilters');
+  var grid = document.getElementById('cxGrid');
+  if (!filters || !grid) return;
+  var pills = Array.prototype.slice.call(filters.querySelectorAll('.cx-pill'));
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.cx-card'));
+
+  filters.addEventListener('click', function(e){
+    var pill = e.target.closest('.cx-pill');
+    if (!pill) return;
+    pills.forEach(function(p){ p.classList.toggle('active', p === pill); });
+    var sector = pill.dataset.sector;
+    cards.forEach(function(card){
+      var show = sector === 'all' || card.dataset.sector === sector;
+      card.style.display = show ? '' : 'none';
+    });
+  });
+})();
+</script>
+</Layout>
