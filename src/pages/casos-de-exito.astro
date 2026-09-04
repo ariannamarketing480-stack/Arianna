@@ -242,7 +242,7 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
                 <p class="cx-result">{c.resultado}</p>
               </div>
             </div>
-            <div class="app-bottom"><a href="#">Ver caso →</a></div>
+            <div class="app-bottom"><a href="#">Ver caso</a></div>
           </div>
         </div>
       ))}
@@ -285,7 +285,7 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
   .cx-filter-section{padding:0 0 32px;}
   .cx-filters{display:flex;flex-wrap:wrap;gap:10px;}
   .cx-pill{
-    display:inline-flex;align-items:center;padding:10px 20px;border-radius:999px;
+    display:inline-flex;align-items:center;padding:10px 20px;border-radius:var(--radius);
     border:1.5px solid var(--line);background:#fff;color:var(--ink);font-weight:600;font-size:14px;
     cursor:pointer;transition:border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
   }
