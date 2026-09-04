@@ -323,6 +323,10 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
   .cx-result{font-weight:700;}
 
   .cx-card-body .app-bottom{margin-top:auto;}
+  /* the shared .app-bottom pill (var(--radius)=14px) reads as fully rounded on a button this
+     short; a smaller radius keeps it looking squared like the sector pills and the rest of the
+     page, without changing the shared style used by the blog/home "Ver más" buttons. */
+  .cx-card-body .app-bottom a{border-radius:8px;}
 
   @media (max-width:960px){
     .cx-grid{grid-template-columns:repeat(2,1fr);}
