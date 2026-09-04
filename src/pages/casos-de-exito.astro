@@ -228,18 +228,27 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
           <div class="cx-card-body">
             <h3>{c.name}</h3>
             <p class="cx-tagline">{c.tagline}</p>
-            <div class="cx-facts">
-              <div class="cx-fact">
-                <span class="cx-fact-label">Reto</span>
-                <p>{c.reto}</p>
+            <div class="cx-timeline">
+              <div class="cx-step">
+                <span class="cx-dot"></span>
+                <div class="cx-step-body">
+                  <span class="cx-step-label">Reto</span>
+                  <p>{c.reto}</p>
+                </div>
               </div>
-              <div class="cx-fact">
-                <span class="cx-fact-label sol">Solución</span>
-                <p>{c.solucion}</p>
+              <div class="cx-step">
+                <span class="cx-dot sol"></span>
+                <div class="cx-step-body">
+                  <span class="cx-step-label sol">Solución</span>
+                  <p>{c.solucion}</p>
+                </div>
               </div>
-              <div class="cx-fact">
-                <span class="cx-fact-label res">Resultado</span>
-                <p class="cx-result">{c.resultado}</p>
+              <div class="cx-step">
+                <span class="cx-dot res"></span>
+                <div class="cx-step-body">
+                  <span class="cx-step-label res">Resultado</span>
+                  <p class="cx-result">{c.resultado}</p>
+                </div>
               </div>
             </div>
             <div class="app-bottom"><a href="#">Ver caso</a></div>
@@ -314,12 +323,27 @@ const SECTOR_NAME = Object.fromEntries(SECTORS.map((s) => [s.id, s.name]));
   .cx-card-body h3{font-size:18px;margin:0 0 6px;line-height:1.3;}
   .cx-tagline{font-size:13.5px;line-height:1.5;color:var(--ink-soft);margin:0 0 16px;}
 
-  .cx-facts{display:flex;flex-direction:column;gap:9px;margin:0 0 16px;padding-top:14px;border-top:1px solid var(--line);}
-  .cx-fact{display:flex;gap:10px;}
-  .cx-fact-label{flex:0 0 72px;padding-top:1px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);}
-  .cx-fact-label.sol{color:var(--blue);}
-  .cx-fact-label.res{color:var(--green);}
-  .cx-fact p{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink);flex:1;}
+  /* Reto → Solución → Resultado as a small vertical timeline: a dot per step, colour-matched to
+     its label, joined by a thin connecting line — reads as a project's progression rather than a
+     flat label/value list. */
+  .cx-timeline{margin:0 0 16px;padding-top:16px;border-top:1px solid var(--line);}
+  .cx-step{position:relative;display:flex;gap:12px;padding-bottom:16px;}
+  .cx-step:last-child{padding-bottom:0;}
+  .cx-step::after{
+    content:"";position:absolute;left:4px;top:13px;bottom:-3px;width:1.5px;background:var(--line);
+  }
+  .cx-step:last-child::after{display:none;}
+  .cx-dot{
+    position:relative;z-index:1;flex:none;width:9px;height:9px;margin-top:4px;
+    border-radius:50%;background:var(--ink-soft);box-shadow:0 0 0 3px #fff;
+  }
+  .cx-dot.sol{background:var(--blue);}
+  .cx-dot.res{background:var(--green);}
+  .cx-step-body{flex:1;min-width:0;}
+  .cx-step-label{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);margin-bottom:3px;}
+  .cx-step-label.sol{color:var(--blue);}
+  .cx-step-label.res{color:var(--green);}
+  .cx-step-body p{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink);}
   .cx-result{font-weight:700;}
 
   .cx-card-body .app-bottom{margin-top:auto;}
