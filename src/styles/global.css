@@ -480,6 +480,8 @@
   .cases-carousel .apps-dot{background:rgba(255,255,255,0.4);}
   .cases-carousel .apps-dot.active{background:var(--magenta);}
   .cases-carousel .apps-track{mask-image:none;-webkit-mask-image:none;}
+  /* Apps Zoho carousel (home): no fade mask on the edges, per request. */
+  #appsTrack{mask-image:none;-webkit-mask-image:none;}
   .apps-arrow-circle{
     position:absolute;top:50%;transform:translateY(-50%);z-index:3;
     width:40px;height:40px;border-radius:50%;
